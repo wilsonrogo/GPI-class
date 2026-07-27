@@ -1,16 +1,17 @@
 """
-GPI Learning Lab | Aurea Capital Partners
-Streamlit app for Investment Portfolio Management — Classes 1 and 2.
+GPI Learning Lab | Investment Portfolio Management
 
-This app is designed as a pedagogical companion for undergraduate students.
-It uses simplified simulations to develop investment judgment, not to provide
-personal financial advice or market forecasts.
+A Streamlit learning app for conceptual, visual, and interactive understanding of
+investment portfolio management. The app is written for students and focuses on
+financial intuition, simplified simulations, and decision-oriented interpretation.
+
+Important: every numerical module is a learning model, not a forecast, not
+financial advice, and not an empirical asset-pricing model.
 """
 
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -19,105 +20,111 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-# ==============================================================================
+# =============================================================================
 # PAGE CONFIGURATION
-# ==============================================================================
+# =============================================================================
 
 st.set_page_config(
-    page_title="GPI Learning Lab | Aurea Capital Partners",
-    page_icon="📈",
+    page_title="GPI Learning Lab",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ==============================================================================
+# =============================================================================
 # STYLE
-# ==============================================================================
+# =============================================================================
 
 PRIMARY = "#1E3A8A"
-PRIMARY_LIGHT = "#EFF6FF"
+PRIMARY_2 = "#2563EB"
 TEXT = "#0F172A"
 MUTED = "#475569"
 BORDER = "#CBD5E1"
+BG = "#F8FAFC"
 GOOD = "#059669"
 WARN = "#D97706"
 BAD = "#DC2626"
-BG = "#F8FAFC"
+PURPLE = "#7C3AED"
 
 st.markdown(
     f"""
 <style>
     .block-container {{
-        padding-top: 1.5rem;
+        padding-top: 1.3rem;
         padding-bottom: 3rem;
     }}
     .main-title {{
         font-size: 2.35rem;
-        line-height: 1.15;
-        font-weight: 800;
+        line-height: 1.10;
+        font-weight: 850;
         color: {PRIMARY};
         margin-bottom: 0.20rem;
     }}
     .sub-title {{
-        font-size: 1.07rem;
+        font-size: 1.08rem;
         color: {MUTED};
-        margin-bottom: 1.15rem;
+        margin-bottom: 1.1rem;
     }}
-    .section-kicker {{
-        font-size: 0.82rem;
+    .kicker {{
+        font-size: 0.78rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: {PRIMARY};
-        margin-top: 0.25rem;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.2rem;
     }}
-    .quote-box {{
-        background: linear-gradient(90deg, #EFF6FF, #FFFFFF);
-        border-left: 5px solid #2563EB;
-        padding: 1rem 1.1rem;
-        border-radius: 10px;
-        margin: 0.75rem 0 1rem 0;
-        color: {TEXT};
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-    }}
-    .decision-box {{
-        background-color: #F0FDF4;
-        border-left: 5px solid #16A34A;
-        padding: 1rem 1.1rem;
-        border-radius: 10px;
-        margin: 0.75rem 0;
-    }}
-    .trap-box {{
-        background-color: #FFF7ED;
-        border-left: 5px solid #EA580C;
-        padding: 1rem 1.1rem;
-        border-radius: 10px;
-        margin: 0.75rem 0;
-    }}
-    .reality-box {{
-        background-color: #FDF2F8;
-        border-left: 5px solid #DB2777;
-        padding: 1rem 1.1rem;
-        border-radius: 10px;
-        margin: 0.75rem 0;
-    }}
-    .soft-card {{
-        background-color: #FFFFFF;
+    .concept-card {{
+        background: #FFFFFF;
         border: 1px solid {BORDER};
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.7rem;
+        border-radius: 14px;
+        padding: 1rem 1.05rem;
+        margin-bottom: 0.80rem;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
     }}
+    .anchor-card {{
+        background: linear-gradient(90deg, #EFF6FF, #FFFFFF);
+        border-left: 5px solid {PRIMARY_2};
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin: 0.8rem 0 1rem 0;
+    }}
+    .decision-card {{
+        background: #F0FDF4;
+        border-left: 5px solid #16A34A;
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin: 0.8rem 0;
+    }}
+    .warning-card {{
+        background: #FFF7ED;
+        border-left: 5px solid #EA580C;
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin: 0.8rem 0;
+    }}
+    .model-card {{
+        background: #FAF5FF;
+        border-left: 5px solid {PURPLE};
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin: 0.8rem 0;
+    }}
     .small-note {{
-        font-size: 0.90rem;
         color: {MUTED};
+        font-size: 0.92rem;
+    }}
+    .formula {{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: #F1F5F9;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 0.35rem 0.5rem;
+        display: inline-block;
     }}
     .pill {{
         display: inline-block;
         padding: 0.22rem 0.55rem;
-        margin: 0.1rem;
+        margin: 0.12rem;
         border-radius: 999px;
         background-color: #E0E7FF;
         color: #3730A3;
@@ -127,7 +134,7 @@ st.markdown(
     .stMetric {{
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 0.55rem;
     }}
 </style>
@@ -135,77 +142,44 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ==============================================================================
+# =============================================================================
 # HELPER FUNCTIONS
-# ==============================================================================
+# =============================================================================
 
-def pct(x: float, decimals: int = 1) -> str:
-    return f"{x * 100:,.{decimals}f}%"
-
-
-def pct_points(x: float, decimals: int = 1) -> str:
-    return f"{x:,.{decimals}f}%"
-
-
-def cop(x: float, decimals: int = 0) -> str:
-    return f"COP ${x:,.{decimals}f}"
-
-
-def usd(x: float, decimals: int = 0) -> str:
+def money(x: float, decimals: int = 0) -> str:
     return f"US ${x:,.{decimals}f}"
 
 
-def base100(values: np.ndarray) -> np.ndarray:
-    return 100 * values / values[0]
+def pct(x: float, decimals: int = 1) -> str:
+    return f"{100*x:,.{decimals}f}%"
 
 
-def header(title: str, subtitle: str, anchor: str, decision_question: str) -> None:
+def pp(x: float, decimals: int = 1) -> str:
+    return f"{x:,.{decimals}f}%"
+
+
+def card(title: str, body: str, kind: str = "concept") -> None:
+    cls = {
+        "concept": "concept-card",
+        "anchor": "anchor-card",
+        "decision": "decision-card",
+        "warning": "warning-card",
+        "model": "model-card",
+    }.get(kind, "concept-card")
+    st.markdown(f'<div class="{cls}"><div class="kicker">{title}</div>{body}</div>', unsafe_allow_html=True)
+
+
+def topic_header(title: str, subtitle: str, anchor: str, question: str) -> None:
     st.markdown(f'<div class="main-title">{title}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="sub-title">{subtitle}</div>', unsafe_allow_html=True)
-    st.markdown(
-        f"""
-        <div class="quote-box">
-            <div class="section-kicker">Conceptual anchor</div>
-            <strong>{anchor}</strong>
-        </div>
-        <div class="decision-box">
-            <div class="section-kicker">Decision question</div>
-            <strong>{decision_question}</strong>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    card("Conceptual anchor", f"<strong>{anchor}</strong>", "anchor")
+    card("Question to keep in mind", f"<strong>{question}</strong>", "decision")
 
 
-def card(title: str, body: str, kind: str = "soft") -> None:
-    cls = {
-        "soft": "soft-card",
-        "trap": "trap-box",
-        "decision": "decision-box",
-        "reality": "reality-box",
-        "quote": "quote-box",
-    }.get(kind, "soft-card")
-    st.markdown(f'<div class="{cls}"><strong>{title}</strong><br>{body}</div>', unsafe_allow_html=True)
-
-
-def diagnostic_badge(value: float, good_threshold: float, warn_threshold: float, higher_is_better: bool = True) -> Tuple[str, str]:
-    if higher_is_better:
-        if value >= good_threshold:
-            return "Sólido", GOOD
-        if value >= warn_threshold:
-            return "Vulnerable", WARN
-        return "Crítico", BAD
-    if value <= good_threshold:
-        return "Sólido", GOOD
-    if value <= warn_threshold:
-        return "Vulnerable", WARN
-    return "Crítico", BAD
-
-
-def make_line_chart(df: pd.DataFrame, x: str, y_cols: List[str], title: str, y_title: str) -> go.Figure:
+def line_chart(df: pd.DataFrame, x: str, cols: List[str], title: str, y_title: str) -> go.Figure:
     fig = go.Figure()
-    for col in y_cols:
-        fig.add_trace(go.Scatter(x=df[x], y=df[col], mode="lines+markers", name=col))
+    for col in cols:
+        fig.add_trace(go.Scatter(x=df[x], y=df[col], mode="lines", name=col, hovertemplate="%{y:,.2f}<extra></extra>"))
     fig.update_layout(
         title=title,
         template="plotly_white",
@@ -214,1053 +188,1102 @@ def make_line_chart(df: pd.DataFrame, x: str, y_cols: List[str], title: str, y_t
         xaxis_title=x,
         yaxis_title=y_title,
         legend=dict(orientation="h", yanchor="bottom", y=-0.28, xanchor="center", x=0.5),
-        margin=dict(l=10, r=10, t=60, b=90),
+        margin=dict(l=15, r=15, t=55, b=90),
     )
     return fig
 
 
-def make_radar(labels: List[str], series: Dict[str, List[float]], title: str = "") -> go.Figure:
+def bar_chart(labels: List[str], values: List[float], title: str, y_title: str, text_suffix: str = "%") -> go.Figure:
     fig = go.Figure()
-    theta = labels + [labels[0]]
-    for name, values in series.items():
-        r = values + [values[0]]
-        fig.add_trace(go.Scatterpolar(r=r, theta=theta, fill="toself", name=name))
+    fig.add_trace(go.Bar(x=labels, y=values, text=[f"{v:,.1f}{text_suffix}" for v in values], textposition="outside"))
+    fig.update_layout(
+        title=title,
+        template="plotly_white",
+        height=390,
+        yaxis_title=y_title,
+        xaxis_title="",
+        margin=dict(l=20, r=20, t=55, b=55),
+    )
+    return fig
+
+
+def radar_chart(df: pd.DataFrame, label_col: str, dimensions: List[str], title: str) -> go.Figure:
+    fig = go.Figure()
+    for _, row in df.iterrows():
+        values = [row[d] for d in dimensions]
+        fig.add_trace(
+            go.Scatterpolar(
+                r=values + [values[0]],
+                theta=dimensions + [dimensions[0]],
+                fill="toself",
+                name=str(row[label_col]),
+            )
+        )
     fig.update_layout(
         title=title,
         polar=dict(radialaxis=dict(visible=True, range=[0, 5])),
-        showlegend=True,
-        height=440,
         template="plotly_white",
-        margin=dict(l=30, r=30, t=55, b=30),
+        height=470,
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+        margin=dict(l=20, r=20, t=60, b=90),
     )
     return fig
 
 
-def download_text_button(label: str, text: str, file_name: str) -> None:
-    st.download_button(
-        label=label,
-        data=text.encode("utf-8"),
-        file_name=file_name,
-        mime="text/plain",
-        use_container_width=True,
+def scenario_label(value: float, low: float, high: float, low_label: str, mid_label: str, high_label: str) -> str:
+    if value <= low:
+        return low_label
+    if value >= high:
+        return high_label
+    return mid_label
+
+
+def safe_div(a: float, b: float) -> float:
+    return a / b if abs(b) > 1e-12 else 0.0
+
+# =============================================================================
+# GLOSSARY DATA
+# =============================================================================
+
+GLOSSARY: List[Dict[str, str]] = [
+    # Foundations
+    {"Term": "Investment", "Category": "Foundations", "Definition": "A disciplined allocation of capital with a reasoned expectation of creating, preserving, or transferring value over time.", "Why it matters": "The process matters as much as the asset. A stock can be speculative if it is bought without analysis or rules."},
+    {"Term": "Speculation", "Category": "Foundations", "Definition": "A position that depends mainly on someone else paying a higher price in the future, often with weak connection to value, horizon, or rules.", "Why it matters": "Speculation is not defined only by the asset. It is defined by the process and the investor's behavior."},
+    {"Term": "Investment Policy Statement (IPS)", "Category": "Foundations", "Definition": "A written set of objectives, constraints, risk limits, liquidity needs, time horizon, and behavioral rules that guide investment decisions.", "Why it matters": "An IPS protects your future emotional self from improvising under market pressure."},
+    {"Term": "Time horizon", "Category": "Foundations", "Definition": "The length of time capital can remain invested before it is needed for consumption, liquidity, or another objective.", "Why it matters": "A risky asset can be reasonable for a long horizon and unsuitable for a short horizon."},
+    {"Term": "Liquidity", "Category": "Foundations", "Definition": "The ability to convert an asset into cash quickly, at a fair price, and with limited transaction cost.", "Why it matters": "Liquidity is valuable precisely when uncertainty rises and investors need flexibility."},
+    {"Term": "Expected return", "Category": "Foundations", "Definition": "The return an investor expects to earn on average, conditional on assumptions about growth, income, valuation, risk, and time.", "Why it matters": "Expected return is not a promise. It is an estimate under assumptions."},
+    {"Term": "Risk", "Category": "Foundations", "Definition": "The possibility that an investment outcome prevents the investor from meeting objectives. It includes volatility, permanent loss, liquidity failure, inflation erosion, and behavioral failure.", "Why it matters": "Risk is broader than price fluctuation."},
+    {"Term": "Opportunity cost", "Category": "Foundations", "Definition": "The value of the best alternative you give up when choosing one option over another.", "Why it matters": "Holding cash, buying a bond, or investing in equities all involve giving up other possibilities."},
+    {"Term": "Purchasing power", "Category": "Foundations", "Definition": "The amount of goods and services money can buy after accounting for inflation.", "Why it matters": "A nominal balance can look stable while real purchasing power declines."},
+    {"Term": "Optionality", "Category": "Foundations", "Definition": "The ability to make better future choices because you have financial flexibility, liquidity, and resilience.", "Why it matters": "Investing is not only about return; it is also about preserving future choices."},
+
+    # Macro
+    {"Term": "Inflation", "Category": "Macroeconomics", "Definition": "A sustained increase in the general price level that reduces the purchasing power of money.", "Why it matters": "Inflation silently penalizes idle capital and changes real returns."},
+    {"Term": "Nominal interest rate", "Category": "Macroeconomics", "Definition": "The stated interest rate before adjusting for inflation.", "Why it matters": "A high nominal rate can still be unattractive if inflation and taxes are also high."},
+    {"Term": "Real interest rate", "Category": "Macroeconomics", "Definition": "The interest rate after adjusting for inflation, approximated as nominal rate minus inflation.", "Why it matters": "Real rates help evaluate whether savers are truly being compensated."},
+    {"Term": "Policy rate", "Category": "Macroeconomics", "Definition": "The short-term interest rate set or influenced by a central bank to guide financial conditions.", "Why it matters": "It affects credit, savings rates, bond yields, currencies, and valuation multiples."},
+    {"Term": "Basis point", "Category": "Macroeconomics", "Definition": "One hundredth of one percentage point. A 100 basis point move equals 1.00 percentage point.", "Why it matters": "Interest-rate changes are commonly expressed in basis points."},
+    {"Term": "Monetary policy", "Category": "Macroeconomics", "Definition": "Central bank actions that influence interest rates, money, credit, inflation expectations, and financial conditions.", "Why it matters": "Monetary policy changes the discount rate and the opportunity cost of capital."},
+    {"Term": "Fiscal policy", "Category": "Macroeconomics", "Definition": "Government decisions on spending, taxation, borrowing, and debt sustainability.", "Why it matters": "Fiscal credibility can affect sovereign yields, currency risk, and country risk premiums."},
+    {"Term": "Market expectation", "Category": "Macroeconomics", "Definition": "The consensus view embedded in prices before a data release or policy announcement.", "Why it matters": "Markets often react to surprises, not to the raw data alone."},
+    {"Term": "Economic surprise", "Category": "Macroeconomics", "Definition": "The difference between a reported data point and what the market expected.", "Why it matters": "A good economic number can hurt markets if it changes expectations about rates or liquidity."},
+    {"Term": "Hawkish", "Category": "Macroeconomics", "Definition": "A policy tone associated with tighter monetary policy, higher rates, or stronger anti-inflation emphasis.", "Why it matters": "Hawkish surprises can pressure bonds and growth-sensitive equities."},
+    {"Term": "Dovish", "Category": "Macroeconomics", "Definition": "A policy tone associated with easier monetary policy, lower rates, or greater concern about growth.", "Why it matters": "Dovish surprises can support risk assets if they reduce discount rates."},
+    {"Term": "Risk-on", "Category": "Macroeconomics", "Definition": "A market environment where investors prefer riskier assets such as equities, high yield bonds, and emerging markets.", "Why it matters": "Portfolio performance often changes when global risk appetite changes."},
+    {"Term": "Risk-off", "Category": "Macroeconomics", "Definition": "A market environment where investors seek safety, liquidity, and lower-risk assets.", "Why it matters": "Risk-off episodes can strengthen safe-haven assets and pressure emerging markets."},
+    {"Term": "Country risk", "Category": "Macroeconomics", "Definition": "The additional risk associated with investing in a specific country because of fiscal, political, institutional, currency, or legal conditions.", "Why it matters": "In emerging markets, country risk can dominate asset-level analysis."},
+    {"Term": "Currency risk", "Category": "Macroeconomics", "Definition": "The risk that exchange-rate movements change the value of an investment measured in the investor's home currency.", "Why it matters": "International diversification can reduce local risk but introduces currency exposure."},
+    {"Term": "Home bias", "Category": "Macroeconomics", "Definition": "The tendency to overinvest in domestic assets because they feel familiar.", "Why it matters": "Familiarity is not the same as diversification."},
+
+    # Markets and intermediaries
+    {"Term": "Financial system", "Category": "Markets & Intermediaries", "Definition": "The network of markets, intermediaries, instruments, rules, and institutions that moves money across people, time, risk, and opportunities.", "Why it matters": "Investors rarely interact with 'the market' directly; they use channels and institutions."},
+    {"Term": "Money market", "Category": "Markets & Intermediaries", "Definition": "A market for short-term instruments focused on liquidity and near-term funding.", "Why it matters": "It influences cash management, short-term rates, and liquidity choices."},
+    {"Term": "Capital market", "Category": "Markets & Intermediaries", "Definition": "A market for long-term financing instruments such as bonds and equities.", "Why it matters": "It connects investors seeking returns with issuers seeking long-term capital."},
+    {"Term": "Primary market", "Category": "Markets & Intermediaries", "Definition": "The market where securities are issued for the first time and capital flows to the issuer.", "Why it matters": "IPOs and bond issuances occur in the primary market."},
+    {"Term": "Secondary market", "Category": "Markets & Intermediaries", "Definition": "The market where existing securities trade between investors.", "Why it matters": "Liquidity and price discovery mainly occur in secondary markets."},
+    {"Term": "Broker", "Category": "Markets & Intermediaries", "Definition": "An intermediary that allows investors to buy and sell securities.", "Why it matters": "Execution quality, fees, access, custody, and regulation depend on the broker."},
+    {"Term": "Custody", "Category": "Markets & Intermediaries", "Definition": "The safekeeping and administration of financial assets by a financial institution.", "Why it matters": "Operational safety is part of investment risk."},
+    {"Term": "Bid", "Category": "Markets & Intermediaries", "Definition": "The highest price a buyer is currently willing to pay for an asset.", "Why it matters": "If you sell immediately, the bid is often the relevant price."},
+    {"Term": "Ask", "Category": "Markets & Intermediaries", "Definition": "The lowest price a seller is currently willing to accept for an asset.", "Why it matters": "If you buy immediately, the ask is often the relevant price."},
+    {"Term": "Bid-ask spread", "Category": "Markets & Intermediaries", "Definition": "The difference between the ask price and the bid price.", "Why it matters": "It is an implicit transaction cost and tends to widen in illiquid or stressed markets."},
+    {"Term": "Market order", "Category": "Markets & Intermediaries", "Definition": "An order to buy or sell immediately at the best available price.", "Why it matters": "It prioritizes execution certainty over price control."},
+    {"Term": "Limit order", "Category": "Markets & Intermediaries", "Definition": "An order to buy or sell only at a specified price or better.", "Why it matters": "It prioritizes price control but may not execute."},
+
+    # Fixed income
+    {"Term": "Bond", "Category": "Fixed Income", "Definition": "A debt instrument through which an issuer borrows money and promises payments according to specified terms.", "Why it matters": "Buying a bond means lending money, not becoming an owner."},
+    {"Term": "Principal", "Category": "Fixed Income", "Definition": "The amount the bond issuer promises to repay at maturity, also called face value.", "Why it matters": "Principal repayment is central to bond cash flows."},
+    {"Term": "Coupon", "Category": "Fixed Income", "Definition": "The periodic interest payment promised by a bond.", "Why it matters": "Coupon size affects cash income and price sensitivity."},
+    {"Term": "Maturity", "Category": "Fixed Income", "Definition": "The date when the bond's principal is scheduled to be repaid.", "Why it matters": "Longer maturities usually imply greater sensitivity to interest-rate changes."},
+    {"Term": "Yield to maturity (YTM)", "Category": "Fixed Income", "Definition": "The internal rate of return implied by a bond's price, coupon, maturity, and principal, assuming payments occur as scheduled and the bond is held to maturity.", "Why it matters": "YTM is an assumption-based measure, not a guaranteed realized return."},
+    {"Term": "Duration", "Category": "Fixed Income", "Definition": "A measure of a bond's sensitivity to interest-rate changes.", "Why it matters": "A bond with higher duration tends to lose more value when yields rise."},
+    {"Term": "Yield curve", "Category": "Fixed Income", "Definition": "A line showing yields across maturities for bonds of similar credit quality.", "Why it matters": "Its shape can signal expectations about inflation, growth, and monetary policy."},
+    {"Term": "Credit risk", "Category": "Fixed Income", "Definition": "The risk that a borrower fails to make promised payments or suffers financial deterioration.", "Why it matters": "Higher yield can be compensation for higher default risk."},
+    {"Term": "Reinvestment risk", "Category": "Fixed Income", "Definition": "The risk that future cash flows must be reinvested at lower rates.", "Why it matters": "A high-yielding short-term product may not be repeatable after it matures."},
+    {"Term": "Sovereign bond", "Category": "Fixed Income", "Definition": "A bond issued by a national government.", "Why it matters": "It is tied to fiscal credibility, currency, inflation, and country risk."},
+    {"Term": "Corporate bond", "Category": "Fixed Income", "Definition": "A bond issued by a company.", "Why it matters": "It carries business risk, credit risk, liquidity risk, and interest-rate risk."},
+
+    # Equity
+    {"Term": "Equity", "Category": "Equity", "Definition": "Ownership interest in a company, usually represented by shares.", "Why it matters": "Equity investors are residual claimants: they participate in upside but absorb business risk."},
+    {"Term": "Common stock", "Category": "Equity", "Definition": "A share that typically grants voting rights and residual claim on company value.", "Why it matters": "Common shareholders benefit from growth but rank behind creditors."},
+    {"Term": "Preferred stock", "Category": "Equity", "Definition": "An equity-like security with priority over common stock for dividends or liquidation, often with limited upside.", "Why it matters": "It blends equity and income characteristics."},
+    {"Term": "ADR", "Category": "Equity", "Definition": "American Depositary Receipt: a U.S.-traded certificate representing shares of a foreign company.", "Why it matters": "It gives foreign exposure but may add currency, custody, and structural considerations."},
+    {"Term": "Dividend", "Category": "Equity", "Definition": "A distribution of company earnings to shareholders.", "Why it matters": "Dividends are one component of total return, but high dividends are not automatically attractive."},
+    {"Term": "Dividend yield", "Category": "Equity", "Definition": "Annual dividend per share divided by the share price.", "Why it matters": "A very high yield may signal opportunity or a dividend trap."},
+    {"Term": "Intrinsic value", "Category": "Equity", "Definition": "An estimate of the present value of future cash flows an asset can generate.", "Why it matters": "Price is observable; value is estimated."},
+    {"Term": "Discounted cash flow (DCF)", "Category": "Equity", "Definition": "A valuation method that estimates value by discounting expected future cash flows to the present.", "Why it matters": "DCF forces you to connect value to cash flows, growth, risk, and time."},
+    {"Term": "P/E ratio", "Category": "Equity", "Definition": "Price per share divided by earnings per share.", "Why it matters": "It shows how much investors pay for current earnings, but it can mislead when earnings are cyclical or distorted."},
+    {"Term": "P/B ratio", "Category": "Equity", "Definition": "Market price divided by book value per share.", "Why it matters": "Useful for some financial or asset-heavy firms, less informative for intangible-heavy businesses."},
+    {"Term": "P/S ratio", "Category": "Equity", "Definition": "Market capitalization divided by revenue.", "Why it matters": "It can be useful when earnings are negative, but it ignores profitability."},
+    {"Term": "Market capitalization", "Category": "Equity", "Definition": "Share price multiplied by shares outstanding.", "Why it matters": "It measures market value of equity and affects index weights."},
+    {"Term": "Value stock", "Category": "Equity", "Definition": "A stock trading at relatively low valuation multiples compared with fundamentals.", "Why it matters": "Cheap can mean undervalued, but it can also mean impaired."},
+    {"Term": "Growth stock", "Category": "Equity", "Definition": "A stock whose valuation depends heavily on expected future growth.", "Why it matters": "Growth stocks are often sensitive to interest rates and expectations."},
+
+    # Funds and ETFs
+    {"Term": "Index", "Category": "Funds & ETFs", "Definition": "A rules-based representation of a market, sector, asset class, or strategy.", "Why it matters": "An index is a methodology, not the market itself."},
+    {"Term": "ETF", "Category": "Funds & ETFs", "Definition": "Exchange-traded fund: an investment vehicle that holds a portfolio and trades on an exchange like a stock.", "Why it matters": "ETFs can provide diversified exposure, but structure, costs, liquidity, domicile, and tax treatment matter."},
+    {"Term": "Mutual fund", "Category": "Funds & ETFs", "Definition": "A pooled investment vehicle whose shares are usually bought or redeemed at net asset value after market close.", "Why it matters": "Mutual funds differ from ETFs in pricing, liquidity, cost, and trading mechanics."},
+    {"Term": "NAV", "Category": "Funds & ETFs", "Definition": "Net asset value: the value of a fund's assets minus liabilities, divided by shares outstanding.", "Why it matters": "NAV is the economic value reference for funds."},
+    {"Term": "Tracking error", "Category": "Funds & ETFs", "Definition": "The volatility of the difference between a fund's return and its benchmark's return.", "Why it matters": "It measures how closely a fund follows its benchmark."},
+    {"Term": "Expense ratio", "Category": "Funds & ETFs", "Definition": "The annual operating cost of a fund expressed as a percentage of assets.", "Why it matters": "Costs compound negatively over time."},
+    {"Term": "Physical replication", "Category": "Funds & ETFs", "Definition": "A fund replication method that holds the actual underlying securities, fully or by sampling.", "Why it matters": "It affects transparency, costs, and tracking."},
+    {"Term": "Synthetic replication", "Category": "Funds & ETFs", "Definition": "A fund replication method using derivatives such as swaps to obtain index exposure.", "Why it matters": "It can improve access or tracking but adds counterparty risk."},
+    {"Term": "Benchmark", "Category": "Funds & ETFs", "Definition": "A reference portfolio or index used to evaluate performance and risk.", "Why it matters": "Without the right benchmark, performance evaluation is weak."},
+    {"Term": "Active management", "Category": "Funds & ETFs", "Definition": "An investment approach that seeks to outperform a benchmark through selection, timing, or allocation decisions.", "Why it matters": "The challenge is achieving outperformance after costs and taxes."},
+    {"Term": "Passive investing", "Category": "Funds & ETFs", "Definition": "An investment approach that seeks to replicate a market or index at low cost.", "Why it matters": "It emphasizes diversification, low fees, and discipline."},
+
+    # Risk and portfolio theory
+    {"Term": "Simple return", "Category": "Risk & Portfolio Theory", "Definition": "Percentage change in wealth over a period: ending value divided by beginning value minus one.", "Why it matters": "It is intuitive and directly linked to investor wealth."},
+    {"Term": "Log return", "Category": "Risk & Portfolio Theory", "Definition": "The natural logarithm of ending value divided by beginning value.", "Why it matters": "Log returns are additive over time and useful in modeling."},
+    {"Term": "Arithmetic mean", "Category": "Risk & Portfolio Theory", "Definition": "The simple average of period returns.", "Why it matters": "It can overstate long-term compound growth when volatility is high."},
+    {"Term": "Geometric mean", "Category": "Risk & Portfolio Theory", "Definition": "The compound average growth rate over multiple periods.", "Why it matters": "It better reflects actual long-term wealth growth."},
+    {"Term": "Volatility", "Category": "Risk & Portfolio Theory", "Definition": "The standard deviation of returns, commonly used as a measure of price variability.", "Why it matters": "Volatility affects emotional pressure and compounded wealth, but it is not the only kind of risk."},
+    {"Term": "Systematic risk", "Category": "Risk & Portfolio Theory", "Definition": "Risk associated with broad market or macro forces that cannot be diversified away easily.", "Why it matters": "Asset pricing theory says investors should be compensated mainly for systematic risk."},
+    {"Term": "Idiosyncratic risk", "Category": "Risk & Portfolio Theory", "Definition": "Risk specific to a company, issuer, sector, or security.", "Why it matters": "Diversification can reduce much of this risk."},
+    {"Term": "Beta", "Category": "Risk & Portfolio Theory", "Definition": "A measure of an asset's sensitivity to market movements.", "Why it matters": "Beta is about systematic exposure, not total risk."},
+    {"Term": "Correlation", "Category": "Risk & Portfolio Theory", "Definition": "A standardized measure of how two assets move together, ranging from -1 to +1.", "Why it matters": "Diversification depends on imperfect correlation."},
+    {"Term": "Covariance", "Category": "Risk & Portfolio Theory", "Definition": "A measure of how two asset returns move together in their own units.", "Why it matters": "Portfolio risk depends on covariance among assets."},
+    {"Term": "Efficient frontier", "Category": "Risk & Portfolio Theory", "Definition": "The set of portfolios offering the highest expected return for each level of risk, or lowest risk for each level of expected return.", "Why it matters": "It visualizes the trade-off between risk and return."},
+    {"Term": "Minimum-variance portfolio", "Category": "Risk & Portfolio Theory", "Definition": "The portfolio with the lowest possible volatility among the available assets.", "Why it matters": "It shows how weights and correlations shape portfolio risk."},
+    {"Term": "Sharpe ratio", "Category": "Risk & Portfolio Theory", "Definition": "Excess return over the risk-free rate divided by volatility.", "Why it matters": "It compares return per unit of risk, but it relies on assumptions about volatility."},
+    {"Term": "CAPM", "Category": "Risk & Portfolio Theory", "Definition": "Capital Asset Pricing Model: a model linking expected return to the risk-free rate, market risk premium, and beta.", "Why it matters": "It formalizes the idea that only systematic risk should be rewarded."},
+    {"Term": "Security Market Line", "Category": "Risk & Portfolio Theory", "Definition": "A line showing the CAPM relationship between beta and expected return.", "Why it matters": "It helps interpret whether expected returns are high or low for a given beta."},
+    {"Term": "Factor investing", "Category": "Risk & Portfolio Theory", "Definition": "Investing by targeting systematic characteristics such as value, size, momentum, quality, or low volatility.", "Why it matters": "It connects empirical return patterns with portfolio construction."},
+    {"Term": "Value at Risk (VaR)", "Category": "Risk & Portfolio Theory", "Definition": "A statistical estimate of the maximum expected loss over a horizon at a given confidence level under model assumptions.", "Why it matters": "VaR is useful but can hide what happens in the tail."},
+    {"Term": "Stress test", "Category": "Risk & Portfolio Theory", "Definition": "An analysis of how a portfolio could behave under severe but plausible scenarios.", "Why it matters": "Stress testing asks what happens when normal assumptions fail."},
+    {"Term": "Tail risk", "Category": "Risk & Portfolio Theory", "Definition": "The risk of extreme outcomes that occur more often or more severely than standard models imply.", "Why it matters": "Tail events can dominate long-term investment survival."},
+    {"Term": "Drawdown", "Category": "Risk & Portfolio Theory", "Definition": "The decline from a portfolio peak to a subsequent trough.", "Why it matters": "Drawdowns measure the emotional and financial stress of losses."},
+
+    # Performance, behavior, frictions
+    {"Term": "Rebalancing", "Category": "Performance, Behavior & Frictions", "Definition": "The process of restoring a portfolio to its target allocation after market movements change the weights.", "Why it matters": "Rebalancing converts discipline into a rule."},
+    {"Term": "Asset allocation", "Category": "Performance, Behavior & Frictions", "Definition": "The decision of how to distribute portfolio capital across asset classes such as equities, bonds, cash, and alternatives.", "Why it matters": "Allocation often explains a large share of portfolio outcomes."},
+    {"Term": "Security selection", "Category": "Performance, Behavior & Frictions", "Definition": "The choice of specific securities within an asset class.", "Why it matters": "It is different from deciding the broad asset-class mix."},
+    {"Term": "Performance attribution", "Category": "Performance, Behavior & Frictions", "Definition": "A method for explaining where portfolio returns came from: allocation, selection, currency, fees, or other effects.", "Why it matters": "It separates luck from decisions more clearly."},
+    {"Term": "Gross return", "Category": "Performance, Behavior & Frictions", "Definition": "Return before costs, taxes, and other frictions.", "Why it matters": "Investors do not spend gross returns."},
+    {"Term": "Net return", "Category": "Performance, Behavior & Frictions", "Definition": "Return after costs, fees, taxes, spreads, and other frictions.", "Why it matters": "Net return is what actually matters for wealth."},
+    {"Term": "Turnover", "Category": "Performance, Behavior & Frictions", "Definition": "The rate at which a portfolio buys and sells holdings over a period.", "Why it matters": "High turnover can increase taxes, spreads, commissions, and behavioral mistakes."},
+    {"Term": "Slippage", "Category": "Performance, Behavior & Frictions", "Definition": "The difference between the expected execution price and the actual execution price.", "Why it matters": "It is an often invisible execution cost."},
+    {"Term": "Loss aversion", "Category": "Performance, Behavior & Frictions", "Definition": "The tendency for losses to hurt more than equivalent gains feel good.", "Why it matters": "It can trigger panic selling or refusal to realize losses."},
+    {"Term": "Disposition effect", "Category": "Performance, Behavior & Frictions", "Definition": "The tendency to sell winners too early and hold losers too long.", "Why it matters": "It is a common investor behavior that weakens portfolio discipline."},
+    {"Term": "Overconfidence", "Category": "Performance, Behavior & Frictions", "Definition": "Excessive belief in one's own forecasting ability, knowledge, or control.", "Why it matters": "Overconfidence often increases trading and concentration."},
+    {"Term": "Confirmation bias", "Category": "Performance, Behavior & Frictions", "Definition": "The tendency to seek information that confirms existing beliefs.", "Why it matters": "It prevents investors from updating when evidence changes."},
+    {"Term": "Herd behavior", "Category": "Performance, Behavior & Frictions", "Definition": "The tendency to follow the crowd rather than independent analysis.", "Why it matters": "Herding can amplify bubbles, crashes, and FOMO."},
+    {"Term": "FOMO", "Category": "Performance, Behavior & Frictions", "Definition": "Fear of missing out: anxiety that others are profiting from an opportunity you are not taking.", "Why it matters": "FOMO can turn a portfolio process into impulse chasing."},
+    {"Term": "Bubble", "Category": "Performance, Behavior & Frictions", "Definition": "A market episode where prices become strongly disconnected from fundamentals, often supported by narrative, leverage, and social reinforcement.", "Why it matters": "Bubbles teach that price momentum can look like evidence until it breaks."},
+
+    # Alternatives and tech
+    {"Term": "Alternative assets", "Category": "Alternatives & Technology", "Definition": "Investments outside traditional public stocks, bonds, and cash, such as real estate, commodities, private equity, hedge funds, or cryptoassets.", "Why it matters": "Alternatives can diversify, but they can also add cost, complexity, illiquidity, and opacity."},
+    {"Term": "REIT", "Category": "Alternatives & Technology", "Definition": "Real Estate Investment Trust: a vehicle that owns or finances income-producing real estate and often trades like a stock.", "Why it matters": "It provides real estate exposure without direct property ownership, but still carries market and rate sensitivity."},
+    {"Term": "Commodity", "Category": "Alternatives & Technology", "Definition": "A raw material or primary good such as oil, gold, copper, or agricultural products.", "Why it matters": "Commodities can hedge some risks but are volatile and often do not generate cash flows."},
+    {"Term": "Cryptoasset", "Category": "Alternatives & Technology", "Definition": "A digital asset recorded on a distributed ledger or blockchain-based system.", "Why it matters": "Its investment role must be assessed critically: liquidity, regulation, custody, narrative risk, and volatility matter."},
+    {"Term": "Robo-advisor", "Category": "Alternatives & Technology", "Definition": "A digital platform that automates portfolio recommendations or management based on user information and algorithms.", "Why it matters": "Automation can help discipline but does not eliminate the need for judgment."},
+    {"Term": "Overfitting", "Category": "Alternatives & Technology", "Definition": "Building a model that fits historical data too closely but performs poorly out of sample.", "Why it matters": "Many attractive backtests fail because they learned noise instead of robust patterns."},
+]
+
+# =============================================================================
+# SIDEBAR
+# =============================================================================
+
+st.sidebar.markdown("## GPI Learning Lab")
+st.sidebar.caption("Interactive concepts for Investment Portfolio Management")
+
+TOPICS = [
+    "Why Invest?",
+    "Macroeconomic Context & Financial Markets",
+    "Financial Glossary",
+]
+
+selected_topic = st.sidebar.radio("Select a learning topic", TOPICS)
+
+st.sidebar.divider()
+st.sidebar.markdown("### Learning roadmap")
+with st.sidebar.expander("Show broader topic map", expanded=False):
+    st.markdown(
+        """
+- Investor mindset and planning
+- Macro context and financial markets
+- Market structure and real decisions
+- Financial assets and portfolio logic
+- Fixed income
+- Equity markets
+- Indexing, passive investing, and market efficiency
+- Returns and risk measurement
+- Diversification and efficient frontier
+- Portfolio optimization and CML
+- CAPM and factor models
+- Risk management and stress testing
+- Rebalancing, benchmarks, and attribution
+- Real frictions and behavioral finance
+- Alternatives, technology, and AI in investing
+"""
     )
 
-
-def annual_compound_with_contributions(
-    initial: float,
-    annual_contribution: float,
-    annual_return: float,
-    years: int,
-) -> np.ndarray:
-    values = [initial]
-    current = initial
-    for _ in range(years):
-        current = current * (1 + annual_return) + annual_contribution
-        values.append(current)
-    return np.array(values)
-
-
-def suitability_score(asset: pd.Series, profile: Dict[str, float]) -> float:
-    # Score 0-100. This is pedagogical, not a recommendation engine.
-    risk_gap = abs(asset["Risk"] - profile["Risk Capacity"])
-    horizon_gap = max(0, asset["Horizon Required"] - profile["Horizon"])
-    liquidity_gap = max(0, profile["Liquidity Need"] - asset["Liquidity"])
-    discipline_gap = max(0, asset["Discipline Required"] - profile["Discipline"])
-    return max(0.0, 100 - 13 * risk_gap - 14 * horizon_gap - 15 * liquidity_gap - 12 * discipline_gap)
-
-
-# ==============================================================================
-# DATA
-# ==============================================================================
-
-ASSET_DATA = pd.DataFrame(
-    [
-        {
-            "Vehicle": "Cash / cuenta transaccional",
-            "Expected Return": 1.0,
-            "Risk": 0.8,
-            "Liquidity": 5.0,
-            "Horizon Required": 1.0,
-            "Discipline Required": 1.0,
-            "Main Hidden Risk": "inflación y costo de oportunidad",
-            "Role": "liquidez inmediata",
-        },
-        {
-            "Vehicle": "CDT local",
-            "Expected Return": 2.6,
-            "Risk": 1.7,
-            "Liquidity": 2.2,
-            "Horizon Required": 2.0,
-            "Discipline Required": 1.8,
-            "Main Hidden Risk": "reinversión, inflación e impuestos",
-            "Role": "estabilidad e ingreso nominal",
-        },
-        {
-            "Vehicle": "TES / fondo de deuda local",
-            "Expected Return": 3.0,
-            "Risk": 2.5,
-            "Liquidity": 3.0,
-            "Horizon Required": 2.8,
-            "Discipline Required": 2.8,
-            "Main Hidden Risk": "duration, tasas y riesgo país",
-            "Role": "renta fija con sensibilidad macro",
-        },
-        {
-            "Vehicle": "ETF acciones globales",
-            "Expected Return": 4.0,
-            "Risk": 3.4,
-            "Liquidity": 4.5,
-            "Horizon Required": 4.3,
-            "Discipline Required": 4.0,
-            "Main Hidden Risk": "volatilidad, FX y comportamiento",
-            "Role": "crecimiento diversificado",
-        },
-        {
-            "Vehicle": "Acción individual cíclica",
-            "Expected Return": 4.4,
-            "Risk": 4.4,
-            "Liquidity": 3.9,
-            "Horizon Required": 4.1,
-            "Discipline Required": 4.5,
-            "Main Hidden Risk": "tesis equivocada, concentración y ciclo",
-            "Role": "crecimiento concentrado",
-        },
-        {
-            "Vehicle": "Cripto / narrativa de moda",
-            "Expected Return": 4.8,
-            "Risk": 5.0,
-            "Liquidity": 3.4,
-            "Horizon Required": 4.8,
-            "Discipline Required": 5.0,
-            "Main Hidden Risk": "narrativa, custodia, regulación y FOMO",
-            "Role": "exposición especulativa / alternativa",
-        },
-    ]
+st.sidebar.divider()
+st.sidebar.info(
+    "This app uses simplified educational models. It is designed to build financial intuition, not to forecast markets or provide investment advice."
 )
 
-PROFILE_DATA = {
-    "Reserva de emergencia": {
-        "Risk Capacity": 1.0,
-        "Horizon": 1.0,
-        "Liquidity Need": 5.0,
-        "Discipline": 2.0,
-        "Description": "Necesitas disponibilidad y preservación. El objetivo no es maximizar retorno.",
-    },
-    "Construcción patrimonial largo plazo": {
-        "Risk Capacity": 3.7,
-        "Horizon": 4.7,
-        "Liquidity Need": 2.0,
-        "Discipline": 4.0,
-        "Description": "Puedes aceptar volatilidad si el proceso, los costos y el horizonte son coherentes.",
-    },
-    "Emprendedor con ingresos volátiles": {
-        "Risk Capacity": 2.4,
-        "Horizon": 3.2,
-        "Liquidity Need": 4.0,
-        "Discipline": 3.6,
-        "Description": "Tu portafolio debe compensar la concentración vital en tu proyecto, no duplicarla.",
-    },
-    "Inversionista curioso pero principiante": {
-        "Risk Capacity": 2.2,
-        "Horizon": 3.0,
-        "Liquidity Need": 3.0,
-        "Discipline": 2.6,
-        "Description": "La simplicidad y las reglas importan más que buscar sofisticación prematura.",
-    },
-}
+# =============================================================================
+# TOPIC 1 — WHY INVEST?
+# =============================================================================
 
-DESK_DATA = {
-    "Colombia & LatAm Equity Desk": ["COLCAP", "acciones locales", "ADRs LatAm", "USD/COP", "liquidez"],
-    "U.S. Equity Desk": ["S&P 500", "Nasdaq", "earnings", "Treasury yields", "AI narrative"],
-    "Global Developed Markets Equity Desk": ["Europe", "Japan", "MSCI World ex-USA", "EUR/USD", "sector composition"],
-    "Colombia Fixed Income Desk": ["TES", "CDTs", "BanRep", "inflación", "curva local"],
-    "Global Fixed Income & Rates Desk": ["US 2Y", "US 10Y", "Fed", "real yields", "credit spreads"],
-    "FX, Commodities & Macro Risk Desk": ["USD/COP", "DXY", "oil", "gold", "risk-on/risk-off"],
-    "Alternatives, Innovation & Digital Assets Desk": ["crypto", "REITs", "thematic ETFs", "robo-advisors", "AI tools"],
-}
-
-# ==============================================================================
-# SIDEBAR
-# ==============================================================================
-
-with st.sidebar:
-    st.markdown("## 📈 GPI Learning Lab")
-    st.caption("Aurea Capital Partners | Investment Portfolio Management")
-
-    page = st.radio(
-        "Selecciona el módulo",
-        [
-            "Inicio — Mapa de aprendizaje",
-            "Clase 1 — Why Invest?",
-            "Clase 2 — Macro & Markets",
-        ],
-    )
-
-    st.divider()
-    st.markdown("### Cómo usar la app")
-    st.markdown(
-        """
-        1. Ajusta los supuestos.
-        2. Observa cómo cambia la gráfica.
-        3. Lee el diagnóstico automático.
-        4. Cierra con una regla para tu IPS o para tu división ACP.
-        """
-    )
-
-    st.divider()
-    st.info(
-        "No estás intentando adivinar el mercado. Estás construyendo un proceso de inversión que pueda sobrevivir a incertidumbre, emociones y errores normales del mercado."
-    )
-    st.caption("Herramienta pedagógica. No constituye asesoría financiera personalizada.")
-
-# ==============================================================================
-# HOME PAGE
-# ==============================================================================
-
-if page == "Inicio — Mapa de aprendizaje":
-    header(
-        "GPI Learning Lab",
-        "Simuladores conceptuales para las primeras dos clases de Gestión de Portafolios de Inversión",
-        "A weak investor reacts to noise. A disciplined investor builds a process.",
-        "¿Qué regla de inversión puedes construir antes de elegir activos?",
-    )
-
-    st.markdown("### Mapa de experiencia")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        card(
-            "Clase 1 — Why Invest?",
-            "Explora inflación, inacción, opcionalidad futura, capital personal, trade-offs, inversión vs. especulación e IPS.",
-            "soft",
-        )
-    with c2:
-        card(
-            "Clase 2 — Macro & Markets",
-            "Traduce inflación, tasas, expectativas, sorpresas, intermediarios, Colombia Factor y FX en decisiones de portafolio.",
-            "soft",
-        )
-    with c3:
-        card(
-            "Aurea Capital Partners",
-            "Usa las simulaciones para convertir observaciones de mercado en señales, riesgos, decisiones y reglas operativas.",
-            "soft",
-        )
-
-    st.markdown("### Lo que debes producir")
-    output_df = pd.DataFrame(
-        {
-            "Momento": ["Antes de invertir", "Al mirar el mercado", "Al cerrar cada módulo"],
-            "Producto intelectual": [
-                "Una regla de IPS",
-                "Una interpretación de señal, no una lista de noticias",
-                "Una decisión defendible con riesgos, restricciones y alternativa descartada",
-            ],
-            "Pregunta de control": [
-                "¿Qué nunca deberías hacer aunque el mercado te provoque?",
-                "¿Qué cambió: dato, expectativa, liquidez, tasa, moneda o narrativa?",
-                "¿La recomendación responde a un mandato o solo a una opinión?",
-            ],
-        }
-    )
-    st.dataframe(output_df, use_container_width=True, hide_index=True)
-
-    st.markdown("### Rasgos Xperience integrados")
-    st.markdown(
-        """
-        <span class="pill">Cointeligencia</span>
-        <span class="pill">Actitud humanizadora</span>
-        <span class="pill">Conexión global</span>
-        <span class="pill">Conexión con el entorno</span>
-        <span class="pill">Reality Check ACP</span>
-        <span class="pill">Aula invertida aplicada</span>
-        """,
-        unsafe_allow_html=True,
-    )
-
-# ==============================================================================
-# CLASS 1
-# ==============================================================================
-
-elif page == "Clase 1 — Why Invest?":
-    header(
-        "Clase 1 — Why Invest?",
-        "Personal Wealth, Future Choices, and the Discipline of Long-Term Investing",
+if selected_topic == "Why Invest?":
+    topic_header(
+        "Why Invest?",
+        "Personal wealth, future choices, inflation, discipline, and long-term investing.",
         "The biggest investment risk is not market volatility — it is not having a plan.",
-        "Why should you invest at all — and what happens if you don’t?",
+        "Why should you invest at all — and what happens if you do not?",
     )
 
     tabs = st.tabs(
         [
-            "1. Inacción e inflación",
-            "2. Costo de esperar",
-            "3. Tu capital total",
-            "4. Trade-offs",
-            "5. IPS & decisión",
+            "Big Picture",
+            "Inflation Trap",
+            "Cost of Waiting",
+            "Capital Beyond Money",
+            "Trade-Off Map",
+            "Investment or Speculation?",
+            "IPS Builder",
         ]
     )
 
-    # ------------------------------------------------------------------
-    # TAB 1.1 Inaction and inflation
-    # ------------------------------------------------------------------
     with tabs[0]:
-        st.markdown("### La trampa de no invertir")
-        st.write(
-            "Observa cómo una decisión aparentemente segura puede destruir poder adquisitivo. "
-            "No invertir no elimina el riesgo: lo transforma en inflación, costo de oportunidad y fragilidad futura."
-        )
-
-        left, right = st.columns([0.95, 2.05])
-        with left:
-            st.markdown("#### Configura el escenario")
-            initial = st.number_input("Capital inicial", 1_000_000, 500_000_000, 10_000_000, 1_000_000, format="%d")
-            annual_contribution = st.number_input("Aporte anual adicional", 0, 100_000_000, 2_400_000, 100_000, format="%d")
-            years = st.slider("Horizonte", 1, 40, 15)
-            inflation = st.slider("Inflación anual esperada", 0.0, 20.0, 6.0, 0.25) / 100
-            cash_rate = st.slider("Rendimiento nominal de cuenta / efectivo", 0.0, 18.0, 2.0, 0.25) / 100
-            portfolio_nominal = st.slider("Retorno nominal esperado del portafolio", 0.0, 25.0, 10.0, 0.25) / 100
-            tax_drag = st.slider("Impuestos / costos aproximados sobre rendimientos", 0.0, 40.0, 10.0, 1.0) / 100
-
-            cash_after_cost = cash_rate * (1 - tax_drag)
-            portfolio_after_cost = portfolio_nominal * (1 - tax_drag)
-            real_portfolio_rate = (1 + portfolio_after_cost) / (1 + inflation) - 1
-            real_cash_rate = (1 + cash_after_cost) / (1 + inflation) - 1
-
-        with right:
-            t = np.arange(years + 1)
-            cash_nom = annual_compound_with_contributions(initial, annual_contribution, cash_after_cost, years)
-            port_nom = annual_compound_with_contributions(initial, annual_contribution, portfolio_after_cost, years)
-            deflator = (1 + inflation) ** t
-            cash_real = cash_nom / deflator
-            port_real = port_nom / deflator
-            contributions_real = (initial + annual_contribution * t) / deflator
-
-            df = pd.DataFrame(
+        st.subheader("Investing begins before assets")
+        c1, c2 = st.columns([1.2, 1])
+        with c1:
+            card(
+                "Core idea",
+                """
+                Investing does not begin when you buy a stock, a bond, an ETF, or a fund.
+                It begins when you recognize that your money, time, career, emotions,
+                inflation exposure, and future choices are already exposed to risk.
+                """,
+                "concept",
+            )
+            card(
+                "The hidden decision",
+                """
+                Not investing is not neutral. It usually means holding a concentrated
+                position in cash, accepting inflation exposure, postponing compounding,
+                and leaving future decisions with less financial flexibility.
+                """,
+                "warning",
+            )
+            card(
+                "Memorable rule",
+                """
+                <strong>Investing is not about becoming rich quickly. It is about building future choices.</strong>
+                """,
+                "decision",
+            )
+        with c2:
+            ideas = pd.DataFrame(
                 {
-                    "Año": t,
-                    "Efectivo / cuenta — valor real": cash_real,
-                    "Portafolio disciplinado — valor real": port_real,
-                    "Aportes sin rendimiento — valor real": contributions_real,
+                    "Question": [
+                        "What can reduce purchasing power?",
+                        "What makes future choices easier?",
+                        "What comes before asset selection?",
+                        "What destroys discipline?",
+                        "What makes an asset suitable?",
+                    ],
+                    "Concept": [
+                        "Inflation",
+                        "Optionality",
+                        "Rules and constraints",
+                        "Emotional improvisation",
+                        "Fit with horizon, liquidity, risk, and behavior",
+                    ],
                 }
             )
-            fig = make_line_chart(
-                df,
-                "Año",
-                ["Efectivo / cuenta — valor real", "Portafolio disciplinado — valor real", "Aportes sin rendimiento — valor real"],
-                "Poder adquisitivo real bajo distintos comportamientos",
-                "COP constantes",
+            st.dataframe(ideas, use_container_width=True, hide_index=True)
+            st.markdown(
+                """
+                **Use this topic to train a habit:** before asking *what should I buy?*, ask
+                *what problem am I trying to solve, under what constraints, and with what rules?*
+                """
             )
-            st.plotly_chart(fig, use_container_width=True)
 
-        gap = port_real[-1] - cash_real[-1]
-        loss_cash = (cash_real[-1] / (initial + annual_contribution * years) - 1) if (initial + annual_contribution * years) > 0 else 0
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Tasa real cuenta", pct(real_cash_rate, 2))
-        m2.metric("Tasa real portafolio", pct(real_portfolio_rate, 2))
-        m3.metric("Valor real final en cuenta", cop(cash_real[-1]))
-        m4.metric("Brecha vs portafolio", cop(gap), delta=cop(gap))
-
-        if real_cash_rate < 0:
-            msg = "Tu cuenta conserva nominalmente dinero, pero pierde capacidad de compra. Esa pérdida suele ser silenciosa."
-            kind = "trap"
-        else:
-            msg = "La cuenta supera la inflación en este escenario, pero aún debes evaluar impuestos, liquidez, horizonte y costo de oportunidad."
-            kind = "decision"
-        card("Lectura de criterio", msg, kind)
-        card(
-            "Regla IPS que podrías construir",
-            "Define cuánto efectivo mantendrás por liquidez y cuánto capital debe trabajar para objetivos de largo plazo. No confundas reserva de emergencia con estrategia patrimonial completa.",
-            "decision",
-        )
-
-    # ------------------------------------------------------------------
-    # TAB 1.2 Delay cost
-    # ------------------------------------------------------------------
     with tabs[1]:
-        st.markdown("### El costo de esperar")
-        st.write(
-            "Analiza qué ocurre cuando pospones la inversión. El problema no es solo perder rendimientos; "
-            "también pierdes tiempo de capitalización y opcionalidad futura."
+        st.subheader("The inflation trap: when safety becomes slow erosion")
+        with st.expander("What am I moving in this simulator?", expanded=True):
+            st.markdown(
+                """
+                You are comparing the **real purchasing power** of money under different assumptions.
+
+                - **Initial capital** is the amount you start with.
+                - **Annual contribution** is the amount added every year.
+                - **Inflation** reduces purchasing power.
+                - **Cash/deposit nominal yield** is the return earned by a low-risk cash-like option before inflation.
+                - **Disciplined portfolio nominal return** is a simplified long-term expected return assumption.
+                - **Annual drag** represents fees, taxes, and other frictions.
+
+                This is **not a forecast**. It is a learning model showing how nominal balances can look acceptable while real purchasing power changes very differently.
+                """
+            )
+
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            initial_capital = st.number_input("Initial capital", min_value=100.0, max_value=1_000_000.0, value=10_000.0, step=500.0, help="Amount invested or held at the starting point.")
+            annual_contribution = st.number_input("Annual contribution", min_value=0.0, max_value=100_000.0, value=1_200.0, step=100.0, help="Additional amount contributed at the end of each year.")
+            years = st.slider("Time horizon", 1, 40, 20, help="Longer horizons magnify the effect of inflation, compounding, and fees.")
+            inflation = st.slider("Annual inflation", 0.0, 15.0, 4.0, 0.25, help="Inflation reduces the real purchasing power of money.") / 100
+            cash_yield = st.slider("Cash/deposit nominal yield", 0.0, 12.0, 2.0, 0.25, help="Nominal return earned by the low-risk cash-like option.") / 100
+            portfolio_return = st.slider("Disciplined portfolio nominal return", 0.0, 18.0, 7.0, 0.25, help="Simplified annual return assumption for a diversified portfolio.") / 100
+            annual_drag = st.slider("Annual drag: fees + taxes + frictions", 0.0, 5.0, 0.7, 0.1, help="A simple annual reduction applied to the portfolio return.") / 100
+
+        t = np.arange(0, years + 1)
+        cash_nominal = np.zeros_like(t, dtype=float)
+        portfolio_nominal = np.zeros_like(t, dtype=float)
+        cash_nominal[0] = initial_capital
+        portfolio_nominal[0] = initial_capital
+        net_portfolio_return = max(portfolio_return - annual_drag, -0.99)
+
+        for i in range(1, years + 1):
+            cash_nominal[i] = cash_nominal[i - 1] * (1 + cash_yield) + annual_contribution
+            portfolio_nominal[i] = portfolio_nominal[i - 1] * (1 + net_portfolio_return) + annual_contribution
+
+        inflation_index = (1 + inflation) ** t
+        cash_real = cash_nominal / inflation_index
+        portfolio_real = portfolio_nominal / inflation_index
+        contributed_nominal = initial_capital + annual_contribution * t
+        contributed_real = contributed_nominal / inflation_index
+
+        df_inflation = pd.DataFrame(
+            {
+                "Year": t,
+                "Cash/deposit — real purchasing power": cash_real,
+                "Disciplined portfolio — real purchasing power": portfolio_real,
+                "Contributions only — inflation adjusted": contributed_real,
+            }
         )
-
-        col_a, col_b = st.columns([1, 2])
-        with col_a:
-            monthly = st.number_input("Aporte mensual", 50_000, 10_000_000, 500_000, 50_000, format="%d")
-            years_total = st.slider("Horizonte total", 5, 45, 25)
-            wait_years = st.slider("Años que decides esperar", 1, min(15, years_total - 1), 5)
-            expected_nominal = st.slider("Retorno nominal anual esperado", 0.0, 20.0, 9.0, 0.25) / 100
-            expected_inflation = st.slider("Inflación anual", 0.0, 15.0, 4.0, 0.25) / 100
-
-        with col_b:
-            monthly_r = (1 + expected_nominal) ** (1 / 12) - 1
-            months = years_total * 12
-            wait_months = wait_years * 12
-            path_now = []
-            path_late = []
-            current_now = 0.0
-            current_late = 0.0
-            for m in range(months + 1):
-                if m > 0:
-                    current_now = current_now * (1 + monthly_r) + monthly
-                    if m > wait_months:
-                        current_late = current_late * (1 + monthly_r) + monthly
-                path_now.append(current_now / ((1 + expected_inflation) ** (m / 12)))
-                path_late.append(current_late / ((1 + expected_inflation) ** (m / 12)))
-
-            df_delay = pd.DataFrame(
-                {
-                    "Año": np.arange(months + 1) / 12,
-                    "Empiezas hoy": path_now,
-                    f"Esperas {wait_years} años": path_late,
-                }
+        with right:
+            st.plotly_chart(
+                line_chart(
+                    df_inflation,
+                    "Year",
+                    ["Cash/deposit — real purchasing power", "Disciplined portfolio — real purchasing power", "Contributions only — inflation adjusted"],
+                    "Real purchasing power over time",
+                    "Today's dollars",
+                ),
+                use_container_width=True,
             )
-            fig_delay = make_line_chart(
-                df_delay,
-                "Año",
-                ["Empiezas hoy", f"Esperas {wait_years} años"],
-                "Costo real de posponer el proceso de inversión",
-                "Valor real acumulado",
-            )
-            st.plotly_chart(fig_delay, use_container_width=True)
 
-        delay_gap = path_now[-1] - path_late[-1]
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Valor real si empiezas hoy", cop(path_now[-1]))
-        c2.metric(f"Valor real si esperas {wait_years} años", cop(path_late[-1]))
-        c3.metric("Costo real de esperar", cop(delay_gap), delta=f"-{cop(delay_gap)}")
+        real_cash_change = cash_real[-1] / initial_capital - 1
+        real_port_change = portfolio_real[-1] / initial_capital - 1
+        gap = portfolio_real[-1] - cash_real[-1]
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Final real value — cash/deposit", money(cash_real[-1]), delta=pct(real_cash_change))
+        m2.metric("Final real value — portfolio", money(portfolio_real[-1]), delta=pct(real_port_change))
+        m3.metric("Real wealth gap", money(gap), help="Final portfolio purchasing power minus final cash/deposit purchasing power.")
+
+        if cash_yield < inflation:
+            cash_message = "Your cash-like option has a negative real rate: it earns interest, but inflation grows faster."
+        elif cash_yield < inflation + 0.01:
+            cash_message = "Your cash-like option is barely protecting purchasing power. The margin of safety is thin."
+        else:
+            cash_message = "Your cash-like option protects purchasing power better in this scenario, but it may still sacrifice long-term compounding."
+
+        if annual_drag > 0.015:
+            drag_message = "The annual drag is high enough to materially reduce compounding. Costs and taxes are not small details."
+        else:
+            drag_message = "The annual drag is moderate in this scenario, but it still compounds against you over time."
 
         card(
-            "Pregunta ACP",
-            "¿Qué decisión parece más prudente: esperar hasta sentirte listo o empezar con una regla simple y pequeña? Justifica qué riesgo estás aceptando en cada alternativa.",
+            "Dynamic reading",
+            f"""
+            {cash_message}<br><br>
+            {drag_message}<br><br>
+            Under your assumptions, the disciplined portfolio ends with <strong>{money(gap)}</strong>
+            more real purchasing power than the cash/deposit path. The lesson is not that risky assets always win.
+            The lesson is that inflation, time, contributions, fees, and discipline interact.
+            """,
+            "model",
+        )
+
+    with tabs[2]:
+        st.subheader("The cost of waiting")
+        with st.expander("What does this simulator teach?", expanded=True):
+            st.markdown(
+                """
+                This module isolates the impact of **delaying the start** of an investment process.
+                You are not changing the final date. You are changing when contributions begin.
+
+                The key idea is that waiting does not only reduce the number of contributions.
+                It also removes early contributions from the compounding process.
+                """
+            )
+        left, right = st.columns([0.9, 1.7])
+        with left:
+            monthly_contribution = st.number_input("Monthly contribution", min_value=10.0, max_value=20_000.0, value=150.0, step=10.0)
+            horizon_years = st.slider("Total horizon", 5, 50, 30)
+            wait_years = st.slider("Years before starting", 0, min(20, horizon_years - 1), 5)
+            nominal_return = st.slider("Expected annual nominal return", 0.0, 15.0, 7.0, 0.25) / 100
+            inflation_wait = st.slider("Annual inflation assumption", 0.0, 10.0, 3.0, 0.25) / 100
+        months = horizon_years * 12
+        wait_months = wait_years * 12
+        monthly_r = (1 + nominal_return) ** (1 / 12) - 1
+        monthly_i = (1 + inflation_wait) ** (1 / 12) - 1
+        now = np.zeros(months + 1)
+        later = np.zeros(months + 1)
+        for m in range(1, months + 1):
+            now[m] = now[m - 1] * (1 + monthly_r) + monthly_contribution
+            later[m] = later[m - 1] * (1 + monthly_r) + (monthly_contribution if m > wait_months else 0)
+        real_now = now / ((1 + monthly_i) ** np.arange(months + 1))
+        real_later = later / ((1 + monthly_i) ** np.arange(months + 1))
+        df_wait = pd.DataFrame({"Year": np.arange(months + 1) / 12, "Start now — real value": real_now, "Start later — real value": real_later})
+        with right:
+            st.plotly_chart(line_chart(df_wait, "Year", ["Start now — real value", "Start later — real value"], "Starting earlier vs. starting later", "Today's dollars"), use_container_width=True)
+        lost_real = real_now[-1] - real_later[-1]
+        contributions_missed = monthly_contribution * wait_months
+        growth_lost = lost_real - contributions_missed / ((1 + inflation_wait) ** horizon_years)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Real value if you start now", money(real_now[-1]))
+        c2.metric("Real value if you wait", money(real_later[-1]))
+        c3.metric("Real cost of waiting", money(lost_real))
+        card(
+            "Dynamic reading",
+            f"""
+            Waiting <strong>{wait_years} years</strong> costs approximately <strong>{money(lost_real)}</strong>
+            in final real wealth under your assumptions. Part of that comes from missed contributions, but part comes from the lost compounding time of early contributions.
+            This is why investing is partly a timing problem, but not in the sense of predicting the market. It is about giving your process enough time to work.
+            """,
+            "model",
+        )
+
+    with tabs[3]:
+        st.subheader("Capital is more than money")
+        with st.expander("What am I scoring?", expanded=True):
+            st.markdown(
+                """
+                Investing decisions are stronger when you understand your full capital structure.
+                You are scoring different forms of capital from 1 to 5.
+
+                These are not moral scores. They are diagnostic inputs: where are you resilient,
+                where are you concentrated, and where could financial planning create more optionality?
+                """
+            )
+        dims = ["Financial", "Human", "Time", "Reputational", "Emotional", "Entrepreneurial"]
+        explanations = {
+            "Financial": "Savings, income, emergency reserves, investable assets.",
+            "Human": "Education, skills, employability, career prospects.",
+            "Time": "Age, horizon, flexibility, ability to wait.",
+            "Reputational": "Trust, relationships, credibility, professional network.",
+            "Emotional": "Ability to tolerate uncertainty without breaking your plan.",
+            "Entrepreneurial": "Projects, business ideas, risk-taking capacity, opportunity pipeline.",
+        }
+        left, right = st.columns([0.9, 1.6])
+        scores = {}
+        with left:
+            for d in dims:
+                scores[d] = st.slider(d, 1, 5, 3, help=explanations[d])
+        df_capital = pd.DataFrame([{"Profile": "Your capital map", **scores}])
+        with right:
+            st.plotly_chart(radar_chart(df_capital, "Profile", dims, "Personal capital map"), use_container_width=True)
+        min_dim = min(scores, key=scores.get)
+        max_dim = max(scores, key=scores.get)
+        balance = np.mean(list(scores.values())) - np.std(list(scores.values()))
+        card(
+            "Dynamic reading",
+            f"""
+            Your strongest capital area is <strong>{max_dim}</strong>; your weakest or most fragile area is <strong>{min_dim}</strong>.
+            A disciplined portfolio should not be disconnected from this map. If your income or business risk is concentrated,
+            your financial portfolio may need more liquidity, diversification, or behavioral simplicity.
+            """,
+            "model",
+        )
+        st.progress(max(0.0, min(1.0, balance / 5)))
+        st.caption("Balance indicator: higher values suggest a more even capital structure. This is a learning diagnostic, not a personal assessment.")
+
+    with tabs[4]:
+        st.subheader("The trade-off map: no free return")
+        with st.expander("How should you read this map?", expanded=True):
+            st.markdown(
+                """
+                Each vehicle is scored from 1 to 5 on five dimensions. A high expected return is not automatically better.
+                It may come with higher volatility, lower liquidity, longer horizon, or greater behavioral discipline required.
+
+                The values are educational approximations. They are not product recommendations.
+                """
+            )
+        default_assets = pd.DataFrame(
+            {
+                "Vehicle": ["Cash", "Short-term deposit", "Broad equity ETF", "Individual cyclical stock", "Speculative narrative asset"],
+                "Expected return": [1.0, 2.0, 3.7, 4.2, 5.0],
+                "Risk": [0.8, 1.4, 3.3, 4.4, 5.0],
+                "Liquidity": [5.0, 2.8, 4.5, 3.8, 3.0],
+                "Required horizon": [1.0, 2.0, 4.3, 4.0, 4.8],
+                "Required discipline": [1.2, 2.0, 4.0, 4.6, 5.0],
+            }
+        )
+        selected = st.multiselect("Choose vehicles to compare", default_assets["Vehicle"].tolist(), default=["Short-term deposit", "Broad equity ETF", "Speculative narrative asset"])
+        df_selected = default_assets[default_assets["Vehicle"].isin(selected)]
+        col1, col2 = st.columns([1.25, 1])
+        with col1:
+            if len(df_selected) > 0:
+                st.plotly_chart(radar_chart(df_selected, "Vehicle", ["Expected return", "Risk", "Liquidity", "Required horizon", "Required discipline"], "Investment trade-offs"), use_container_width=True)
+            else:
+                st.warning("Select at least one vehicle.")
+        with col2:
+            scatter = px.scatter(
+                default_assets,
+                x="Risk",
+                y="Expected return",
+                size="Required discipline",
+                color="Liquidity",
+                hover_name="Vehicle",
+                text="Vehicle",
+                range_x=[0, 5.5],
+                range_y=[0, 5.5],
+                title="Risk-return-discipline view",
+                color_continuous_scale="Blues",
+            )
+            scatter.update_traces(textposition="top center")
+            scatter.update_layout(template="plotly_white", height=470, margin=dict(l=20, r=20, t=55, b=40))
+            st.plotly_chart(scatter, use_container_width=True)
+        card(
+            "Interpretation rule",
+            """
+            If a product seems to offer high return, low risk, high liquidity, low cost, and no discipline requirement,
+            do not celebrate first. Ask what risk, restriction, cost, or assumption is missing.
+            """,
+            "warning",
+        )
+
+    with tabs[5]:
+        st.subheader("Investment or speculation?")
+        with st.expander("What does this diagnostic do?", expanded=True):
+            st.markdown(
+                """
+                The same asset can be approached with different processes.
+                This diagnostic does not judge the asset alone. It evaluates the quality of the decision process.
+
+                You will receive a score based on horizon, thesis, valuation discipline, risk limits, liquidity fit, and behavioral trigger.
+                """
+            )
+        left, right = st.columns([1, 1.35])
+        with left:
+            asset_label = st.text_input("Asset or vehicle you are evaluating", "Global equity ETF")
+            horizon = st.selectbox("Primary horizon", ["Less than 3 months", "3–12 months", "1–5 years", "More than 5 years"])
+            reason = st.selectbox("Main reason for entering", ["Clear role in my plan", "Valuation or expected cash flows", "Diversification", "Recent price momentum", "Social media or peer pressure", "Fear of missing out"])
+            risk_rule = st.selectbox("Risk rule", ["Written rule and position limit", "General idea but not written", "No explicit risk rule"])
+            liquidity_fit = st.selectbox("Liquidity fit", ["Matches my need", "Unclear", "Could conflict with my need"])
+            understanding = st.selectbox("Understanding of what drives returns", ["Strong", "Partial", "Weak"])
+        score = 0
+        score += {"Less than 3 months": 0, "3–12 months": 1, "1–5 years": 2, "More than 5 years": 2}[horizon]
+        score += {"Clear role in my plan": 3, "Valuation or expected cash flows": 3, "Diversification": 2, "Recent price momentum": 0, "Social media or peer pressure": -1, "Fear of missing out": -2}[reason]
+        score += {"Written rule and position limit": 3, "General idea but not written": 1, "No explicit risk rule": -1}[risk_rule]
+        score += {"Matches my need": 2, "Unclear": 0, "Could conflict with my need": -2}[liquidity_fit]
+        score += {"Strong": 2, "Partial": 1, "Weak": -2}[understanding]
+        max_score = 12
+        normalized = max(0, min(1, score / max_score))
+        if score >= 9:
+            label = "Investment-like process"
+            color = GOOD
+            advice = "The process is relatively disciplined. The next step is to test assumptions and compare alternatives."
+        elif score >= 5:
+            label = "Borderline decision"
+            color = WARN
+            advice = "The decision may be reasonable, but the process still has weak points. Clarify rules, liquidity, and evidence."
+        else:
+            label = "Speculation-like process"
+            color = BAD
+            advice = "The decision depends too much on price movement, emotion, or weak rules. Slow down before allocating capital."
+        with right:
+            fig_gauge = go.Figure(go.Indicator(mode="gauge+number", value=score, title={"text": label}, gauge={"axis": {"range": [-4, 12]}, "bar": {"color": color}, "steps": [{"range": [-4, 4.9], "color": "#FEE2E2"}, {"range": [5, 8.9], "color": "#FEF3C7"}, {"range": [9, 12], "color": "#DCFCE7"}]}))
+            fig_gauge.update_layout(height=330, margin=dict(l=20, r=20, t=45, b=20))
+            st.plotly_chart(fig_gauge, use_container_width=True)
+            card("Dynamic reading", f"For <strong>{asset_label}</strong>, the process currently looks like: <strong>{label}</strong>.<br><br>{advice}", "model")
+        st.markdown("#### Process checklist")
+        st.write("Before deciding, complete these sentences:")
+        st.markdown(
+            """
+- I am considering this asset because...
+- The risk I am accepting is...
+- The alternative I am rejecting is...
+- I would change my mind if...
+- This position fits my horizon because...
+"""
+        )
+
+    with tabs[6]:
+        st.subheader("IPS Builder: rules before assets")
+        with st.expander("What is an IPS?", expanded=True):
+            st.markdown(
+                """
+                An Investment Policy Statement is a set of rules that connects objectives, constraints, risk tolerance,
+                liquidity, horizon, and behavior. It should come before asset selection.
+
+                Think of it as a letter from your disciplined self to your emotional future self.
+                """
+            )
+        left, right = st.columns([1, 1.2])
+        with left:
+            objective = st.selectbox("Primary objective", ["Emergency resilience", "Long-term wealth building", "Future entrepreneurship", "Education or major purchase", "Financial independence"])
+            horizon_ips = st.selectbox("Investment horizon", ["Short-term", "Medium-term", "Long-term"])
+            liquidity_need = st.selectbox("Liquidity need", ["High", "Moderate", "Low"])
+            max_drawdown = st.select_slider("Temporary drawdown you could tolerate without breaking the plan", options=["0%", "-5%", "-10%", "-20%", "-30%", "-40% or more"])
+            contribution_rule = st.text_input("Contribution rule", "I will invest a fixed amount every month after covering essential liquidity needs.")
+            panic_rule = st.text_input("Market stress rule", "I will not sell only because prices fall; I will first review whether my objective, horizon, or liquidity need changed.")
+            exclusion_rule = st.text_input("Exclusion rule", "I will not buy assets I cannot explain in plain language.")
+        ips_text = f"""# Draft Investment Policy Statement
+
+## Objective
+My primary objective is: {objective}.
+
+## Horizon
+My investment horizon is: {horizon_ips}.
+
+## Liquidity
+My liquidity need is: {liquidity_need}.
+
+## Risk tolerance
+The temporary drawdown I believe I could tolerate without breaking my plan is: {max_drawdown}.
+
+## Contribution rule
+{contribution_rule}
+
+## Market stress rule
+{panic_rule}
+
+## Exclusion rule
+{exclusion_rule}
+
+## Decision principle
+I will not start with the question "What should I buy?" I will start with the question "What role should this decision play in my life, under my constraints, and according to my rules?"
+"""
+        with right:
+            st.markdown("#### Draft output")
+            st.code(ips_text, language="markdown")
+            st.download_button("Download draft IPS", data=ips_text, file_name="draft_ips.md", mime="text/markdown")
+        card("Core rule", "A recommendation without a mandate is only an opinion. A recommendation with objectives, constraints, evidence, and rules starts to look like an investment decision.", "decision")
+
+# =============================================================================
+# TOPIC 2 — MACROECONOMIC CONTEXT AND FINANCIAL MARKETS
+# =============================================================================
+
+elif selected_topic == "Macroeconomic Context & Financial Markets":
+    topic_header(
+        "Macroeconomic Context & Financial Markets",
+        "How inflation, interest rates, expectations, currencies, markets, and intermediaries shape investment decisions.",
+        "Markets move not only because of fundamentals, but because of expectations about the future.",
+        "How does the macroeconomic environment affect investment decisions, even for an individual investor?",
+    )
+
+    tabs = st.tabs(
+        [
+            "Macro Map",
+            "Transmission Engine",
+            "Expectations vs. Surprises",
+            "Real Returns",
+            "Market Architecture",
+            "Emerging Market Lens",
+        ]
+    )
+
+    with tabs[0]:
+        st.subheader("Macro is the environment your portfolio lives in")
+        card(
+            "Core idea",
+            """
+            Macroeconomics does not tell you exactly what to buy. It changes the terrain where every investment decision occurs:
+            inflation, interest rates, discount rates, credit conditions, currency, liquidity, risk appetite, and valuation.
+            """,
+            "concept",
+        )
+        st.markdown("#### The five channels that matter most")
+        channels = pd.DataFrame(
+            {
+                "Macro variable": ["Inflation", "Interest rates", "Growth", "Fiscal credibility", "Global risk appetite"],
+                "Investment channel": ["Purchasing power and real returns", "Discount rates, credit, bond prices", "Corporate earnings and employment", "Country risk, sovereign yields, currency", "Flows, liquidity, emerging markets, safe havens"],
+                "Common trap": ["Confusing nominal return with real return", "Thinking high rates are simply good or bad", "Treating growth as always bullish", "Ignoring country risk in local assets", "Assuming diversification always works in stress"],
+            }
+        )
+        st.dataframe(channels, hide_index=True, use_container_width=True)
+        card(
+            "Interpretation rule",
+            "Macro matters when it changes cash flows, discount rates, risk premiums, liquidity, or currency.",
             "decision",
         )
-        card(
-            "Trampa conceptual",
-            "Creer que esperar no cuesta. Esperar puede ser racional si necesitas liquidez o educación financiera, pero no es una decisión gratuita.",
-            "trap",
-        )
 
-    # ------------------------------------------------------------------
-    # TAB 1.3 Capital map
-    # ------------------------------------------------------------------
-    with tabs[2]:
-        st.markdown("### Tu portafolio empieza antes del dinero")
-        st.write(
-            "Califica tus distintas formas de capital. La inversión personal no comienza con un ticker; comienza cuando ordenas tus recursos, restricciones y riesgos."
-        )
+    with tabs[1]:
+        st.subheader("Macro Transmission Engine")
+        with st.expander("What am I moving in this simulator?", expanded=True):
+            st.markdown(
+                """
+                This simulator studies a **hypothetical interest-rate shock**.
 
-        c_left, c_right = st.columns([1.1, 1.9])
-        with c_left:
-            st.markdown("#### Autoevaluación 1–5")
-            financial_capital = st.slider("Capital financiero", 1, 5, 2)
-            human_capital = st.slider("Capital humano", 1, 5, 4)
-            time_capital = st.slider("Capital temporal / horizonte", 1, 5, 5)
-            reputation_capital = st.slider("Capital reputacional", 1, 5, 3)
-            emotional_capital = st.slider("Capital emocional ante incertidumbre", 1, 5, 3)
-            entrepreneurial_capital = st.slider("Capital emprendedor", 1, 5, 3)
+                - A **basis point** is 0.01 percentage point. A 100 bps shock means the rate changes by 1.00 percentage point.
+                - The **policy-rate shock** represents a central bank decision or a sudden repricing of expected policy rates.
+                - The **pass-through to bond yields** says how much of that shock is reflected in market yields. It may be less than 100% if markets had already expected it, or more than 100% if the shock changes the whole yield curve.
+                - The **bond impact** uses the traditional duration approximation: price change ≈ -duration × yield change.
+                - The **equity impact** uses a simplified valuation sensitivity: higher discount rates reduce the present value of future cash flows, especially for long-duration growth equities.
+                - The **currency and liquidity effects** are teaching assumptions, not forecasts.
 
-        with c_right:
-            labels = [
-                "Financiero",
-                "Humano",
-                "Temporal",
-                "Reputacional",
-                "Emocional",
-                "Emprendedor",
-            ]
-            values = [
-                financial_capital,
-                human_capital,
-                time_capital,
-                reputation_capital,
-                emotional_capital,
-                entrepreneurial_capital,
-            ]
-            fig_cap = make_radar(labels, {"Tu mapa de capital": values}, "Mapa de capital personal")
-            st.plotly_chart(fig_cap, use_container_width=True)
-
-        concentration = max(values) - min(values)
-        avg_score = np.mean(values)
-        diagnosis, color = diagnostic_badge(avg_score, 3.7, 2.6, True)
-        st.markdown(
-            f"""
-            <div class="soft-card">
-                <strong>Diagnóstico de coherencia:</strong> <span style="color:{color}; font-weight:800;">{diagnosis}</span><br>
-                Tu puntaje promedio es <strong>{avg_score:.1f}/5</strong> y la brecha entre tu capital más fuerte y tu capital más débil es <strong>{concentration:.1f}</strong> puntos.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if emotional_capital <= 2:
-            card(
-                "Advertencia conductual",
-                "Una estrategia muy volátil puede ser técnicamente razonable y emocionalmente imposible de sostener. Tu IPS debe protegerte de vender bajo presión.",
-                "trap",
+                The point is not to claim that assets will move by exactly these numbers.
+                The point is to see why a rate shock can affect bonds, equities, currency, and liquidity through different mechanisms.
+                """
             )
-        if financial_capital <= 2 and time_capital >= 4:
-            card(
-                "Ventaja silenciosa",
-                "Aunque tu capital financiero inicial sea bajo, tu horizonte puede ser una ventaja poderosa si construyes disciplina temprano.",
-                "decision",
-            )
-        if entrepreneurial_capital >= 4:
-            card(
-                "Conexión emprendedora",
-                "Si tu vida ya concentra riesgo en un proyecto, tu portafolio financiero no debería replicar esa fragilidad. Debe funcionar como infraestructura de estabilidad.",
-                "decision",
-            )
-
-    # ------------------------------------------------------------------
-    # TAB 1.4 Trade-offs
-    # ------------------------------------------------------------------
-    with tabs[3]:
-        st.markdown("### El mapa de trade-offs")
-        st.write(
-            "Compara vehículos desde cinco dimensiones. Un activo no es bueno o malo en abstracto: "
-            "su calidad depende del mandato, el horizonte, la liquidez, el riesgo y la disciplina requerida."
-        )
-
-        col_1, col_2 = st.columns([1, 2])
-        with col_1:
-            profile_name = st.selectbox("Perfil / mandato ACP", list(PROFILE_DATA.keys()))
-            selected_assets = st.multiselect(
-                "Vehículos para comparar",
-                ASSET_DATA["Vehicle"].tolist(),
-                default=["CDT local", "ETF acciones globales", "Cripto / narrativa de moda"],
-            )
-            st.caption(PROFILE_DATA[profile_name]["Description"])
-
-        with col_2:
-            filtered = ASSET_DATA[ASSET_DATA["Vehicle"].isin(selected_assets)]
-            labels = ["Retorno", "Riesgo", "Liquidez", "Horizonte", "Disciplina"]
-            series = {}
-            for _, row in filtered.iterrows():
-                series[row["Vehicle"]] = [
-                    row["Expected Return"],
-                    row["Risk"],
-                    row["Liquidity"],
-                    row["Horizon Required"],
-                    row["Discipline Required"],
-                ]
-            if series:
-                st.plotly_chart(make_radar(labels, series, "Perfil comparado de vehículos"), use_container_width=True)
-            else:
-                st.warning("Selecciona al menos un vehículo.")
-
-        profile = PROFILE_DATA[profile_name]
-        score_df = ASSET_DATA.copy()
-        score_df["Suitability Score"] = score_df.apply(lambda r: suitability_score(r, profile), axis=1)
-        score_df = score_df.sort_values("Suitability Score", ascending=False)
-
-        fig_scatter = px.scatter(
-            ASSET_DATA,
-            x="Risk",
-            y="Expected Return",
-            size="Liquidity",
-            color="Horizon Required",
-            hover_name="Vehicle",
-            hover_data=["Main Hidden Risk", "Role"],
-            title="Retorno esperado, riesgo, liquidez y horizonte requerido",
-            labels={
-                "Risk": "Riesgo / volatilidad percibida",
-                "Expected Return": "Retorno esperado",
-                "Liquidity": "Liquidez",
-                "Horizon Required": "Horizonte requerido",
-            },
-        )
-        fig_scatter.update_layout(template="plotly_white", height=420)
-        st.plotly_chart(fig_scatter, use_container_width=True)
-
-        st.markdown("#### Ranking pedagógico de coherencia con el mandato")
-        st.dataframe(
-            score_df[["Vehicle", "Suitability Score", "Role", "Main Hidden Risk"]],
-            use_container_width=True,
-            hide_index=True,
-        )
-
-        card(
-            "Regla de oro",
-            "Si un producto promete alto retorno, bajo riesgo y liquidez perfecta, no has encontrado magia financiera: falta identificar el costo, la restricción o el riesgo escondido.",
-            "trap",
-        )
-
-    # ------------------------------------------------------------------
-    # TAB 1.5 IPS & decision
-    # ------------------------------------------------------------------
-    with tabs[4]:
-        st.markdown("### IPS Builder: de opinión a mandato")
-        st.write(
-            "Construye un borrador mínimo de IPS. No estás escogiendo activos todavía; estás definiendo las reglas que deberán gobernar tus decisiones futuras."
-        )
-
-        st.markdown("#### Filtro inversión vs. especulación")
-        f1, f2, f3 = st.columns(3)
-        with f1:
-            analysis = st.slider("Análisis del activo", 0, 5, 3)
-            horizon = st.slider("Horizonte definido", 0, 5, 4)
-        with f2:
-            value_link = st.slider("Conexión con valor / flujos / función", 0, 5, 3)
-            risk_limits = st.slider("Límites de riesgo", 0, 5, 3)
-        with f3:
-            rules = st.slider("Reglas previas", 0, 5, 2)
-            fomo = st.slider("Influencia de FOMO / moda", 0, 5, 2)
-
-        discipline_score = (analysis + horizon + value_link + risk_limits + rules + (5 - fomo)) / 30 * 100
-        diagnosis, color = diagnostic_badge(discipline_score, 75, 50, True)
-        st.markdown(
-            f"""
-            <div class="soft-card">
-            <strong>Puntaje de disciplina de la decisión:</strong>
-            <span style="color:{color}; font-weight:800;">{discipline_score:.0f}/100 — {diagnosis}</span><br>
-            Una decisión se parece más a inversión cuando existe análisis, horizonte, vínculo con valor, límites de riesgo y reglas. Se parece más a especulación cuando depende principalmente de que alguien pague más después.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.divider()
-        c_ips1, c_ips2 = st.columns(2)
-        with c_ips1:
-            st.markdown("#### Mandato")
-            goal = st.selectbox(
-                "Objetivo principal del capital",
-                [
-                    "Reserva de estabilidad",
-                    "Construcción patrimonial de largo plazo",
-                    "Fondo para emprendimiento futuro",
-                    "Educación / proyecto personal",
-                ],
-            )
-            ips_horizon = st.selectbox("Horizonte indiscutible", ["Menos de 1 año", "1 a 3 años", "3 a 5 años", "Más de 5 años"])
-            liquidity = st.selectbox("Necesidad de liquidez", ["Muy alta", "Alta", "Media", "Baja"])
-            max_drawdown = st.selectbox("Caída temporal tolerable sin vender por pánico", ["0%", "-5%", "-15%", "-30%", "Más de -30%"])
-        with c_ips2:
-            st.markdown("#### Reglas operativas")
-            contribution_rule = st.text_input("Regla de aporte", "Invertiré un monto fijo con periodicidad definida, salvo que cambie mi liquidez personal.")
-            exclusion_rule = st.text_input("Regla de exclusión", "No compraré activos que no entienda o cuya tesis dependa solo de moda/FOMO.")
-            crisis_rule = st.text_input("Regla de crisis", "Ante una caída fuerte, revisaré tesis, horizonte y liquidez antes de vender.")
-            review_rule = st.text_input("Regla de revisión", "Revisaré mi IPS periódicamente, no cada vez que cambie el precio.")
-
-        ips_text = f"""AUREA CAPITAL PARTNERS — BORRADOR MÍNIMO DE IPS
-
-Objetivo principal: {goal}
-Horizonte: {ips_horizon}
-Necesidad de liquidez: {liquidity}
-Caída temporal tolerable: {max_drawdown}
-
-Reglas operativas:
-1. Aporte y disciplina: {contribution_rule}
-2. Exclusiones: {exclusion_rule}
-3. Protocolo de crisis: {crisis_rule}
-4. Revisión: {review_rule}
-
-Principio rector:
-No intento adivinar el mercado. Estoy construyendo un proceso de inversión que pueda sobrevivir a incertidumbre, emociones y errores normales del mercado.
-"""
-        st.code(ips_text, language="text")
-        download_text_button("Descargar borrador IPS", ips_text, "borrador_ips_acp.txt")
-
-        card(
-            "Cierre de Clase 1",
-            "Una recomendación sin mandato es solo una opinión. Una recomendación con mandato, evidencia y reglas empieza a parecerse a una decisión profesional.",
-            "quote",
-        )
-
-# ==============================================================================
-# CLASS 2
-# ==============================================================================
-
-elif page == "Clase 2 — Macro & Markets":
-    header(
-        "Clase 2 — Macroeconomic Context and Financial Markets",
-        "How the Economy Shapes Investment Opportunities & Retail Realities",
-        "Markets move not only because of fundamentals, but because of expectations about the future.",
-        "How does the macroeconomic environment affect your investment decisions — even if you are a retail investor?",
-    )
-
-    tabs2 = st.tabs(
-        [
-            "1. Motor macro",
-            "2. Expectativas y sorpresas",
-            "3. Sistema financiero real",
-            "4. Colombia Factor",
-            "5. ACP Market Brief",
-        ]
-    )
-
-    # ------------------------------------------------------------------
-    # TAB 2.1 Macro engine
-    # ------------------------------------------------------------------
-    with tabs2[0]:
-        st.markdown("### Macro Transmission Engine")
-        st.write(
-            "Mueve los choques macro y observa cómo se transmiten a bonos, acciones, liquidez, moneda y crédito. "
-            "La macro no te dice exactamente qué comprar, pero cambia el terreno sobre el que vive tu portafolio."
-        )
-
-        left, right = st.columns([1, 2])
+        left, right = st.columns([0.95, 1.65])
         with left:
-            st.markdown("#### Choques")
-            rate_shock_bps = st.slider("Choque de tasas de política", -300, 300, 100, 25)
-            inflation_shock_pp = st.slider("Sorpresa de inflación", -3.0, 3.0, 0.8, 0.1)
-            growth_shock_pp = st.slider("Sorpresa de crecimiento", -4.0, 4.0, -1.0, 0.25)
-            risk_premium_bps = st.slider("Cambio en prima de riesgo país / mercado", -300, 500, 100, 25)
-            bond_duration = st.slider("Duración bono soberano", 1.0, 15.0, 6.0, 0.5)
-            equity_duration = st.slider("Sensibilidad equity growth a tasa", 3.0, 25.0, 12.0, 0.5)
+            initial_policy_rate = st.slider("Initial policy rate", 0.0, 20.0, 8.0, 0.25, help="Starting short-term policy rate before the hypothetical shock.") / 100
+            shock_bps = st.slider("Policy-rate shock", -400, 400, 100, 25, help="Positive values represent rate hikes or hawkish repricing. Negative values represent cuts or dovish repricing.")
+            pass_through = st.slider("Pass-through to market yields", 0.0, 150.0, 80.0, 5.0, help="How much of the policy shock is reflected in bond yields. 100% means one-for-one pass-through.") / 100
+            bond_duration = st.slider("Bond duration", 0.5, 20.0, 6.0, 0.5, help="Higher duration means higher price sensitivity to yield changes.")
+            equity_duration = st.selectbox("Equity profile", ["Defensive equity", "Broad equity market", "Long-duration growth equity"], help="Growth equities tend to be more sensitive to discount-rate changes.")
+            risk_premium_change_bps = st.slider("Risk premium shock", -200, 300, 50, 25, help="Additional repricing of risk appetite. Positive values mean investors demand more compensation for risk.")
+            fx_sensitivity = st.slider("Currency sensitivity", 0.0, 1.5, 0.5, 0.05, help="Teaching assumption: how strongly currency pressure reacts to rate/risk shocks.")
 
+        yield_change = (shock_bps / 10_000) * pass_through
+        bond_price_change = -bond_duration * yield_change
+        equity_base_sensitivity = {"Defensive equity": 4.0, "Broad equity market": 7.0, "Long-duration growth equity": 11.0}[equity_duration]
+        total_discount_shock = yield_change + risk_premium_change_bps / 10_000
+        equity_price_change = -equity_base_sensitivity * total_discount_shock
+        cash_return_change = shock_bps / 10_000
+        currency_pressure = fx_sensitivity * (0.35 * shock_bps + 0.65 * risk_premium_change_bps) / 100
+        liquidity_score_change = -0.015 * max(shock_bps, 0) - 0.012 * max(risk_premium_change_bps, 0)
+
+        impacts = pd.DataFrame(
+            {
+                "Asset / condition": ["Short-term cash yield", f"Bond price (duration {bond_duration:.1f})", equity_duration, "Currency pressure", "Liquidity conditions"],
+                "Estimated impact (%)": [cash_return_change * 100, bond_price_change * 100, equity_price_change * 100, currency_pressure, liquidity_score_change],
+            }
+        )
         with right:
-            delta_y = (rate_shock_bps + 0.35 * risk_premium_bps + 50 * inflation_shock_pp) / 10000
-            bond_impact = -bond_duration * delta_y * 100
-            growth_equity_impact = -equity_duration * delta_y * 100 + 1.0 * growth_shock_pp
-            value_equity_impact = -0.45 * equity_duration * delta_y * 100 + 0.8 * growth_shock_pp
-            cash_cdt_impact = max(rate_shock_bps / 100, -2.0)
-            fx_impact = 0.40 * (rate_shock_bps / 100) + 0.55 * (risk_premium_bps / 100) + 0.35 * inflation_shock_pp - 0.25 * growth_shock_pp
-            liquidity_impact = -0.25 * (rate_shock_bps / 100) - 0.35 * (risk_premium_bps / 100)
+            st.plotly_chart(bar_chart(impacts["Asset / condition"].tolist(), impacts["Estimated impact (%)"].tolist(), "Simplified impact of the macro shock", "Estimated impact (%)"), use_container_width=True)
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("New policy rate", pct(initial_policy_rate + shock_bps / 10_000))
+        c2.metric("Yield change used", f"{yield_change*10_000:,.0f} bps")
+        c3.metric("Bond price impact", pct(bond_price_change))
+        c4.metric("Equity price impact", pct(equity_price_change))
 
-            impacts = pd.DataFrame(
-                {
-                    "Activo / variable": [
-                        "Bono soberano largo",
-                        "Acciones growth",
-                        "Acciones value / defensivas",
-                        "CDT nuevo",
-                        "USD/COP",
-                        "Liquidez de mercado",
-                    ],
-                    "Impacto estimado (%)": [
-                        bond_impact,
-                        growth_equity_impact,
-                        value_equity_impact,
-                        cash_cdt_impact,
-                        fx_impact,
-                        liquidity_impact,
-                    ],
-                }
-            )
-            fig_bar = px.bar(
-                impacts,
-                x="Activo / variable",
-                y="Impacto estimado (%)",
-                title="Impacto pedagógico estimado del escenario macro",
-                text_auto=".1f",
-            )
-            fig_bar.update_layout(template="plotly_white", height=430, xaxis_tickangle=-20)
-            st.plotly_chart(fig_bar, use_container_width=True)
-
+        direction = "tightening" if shock_bps > 0 else "easing" if shock_bps < 0 else "no policy-rate change"
+        if shock_bps > 0:
+            rate_read = "The rate shock raises the opportunity cost of money and tends to pressure long-duration assets."
+        elif shock_bps < 0:
+            rate_read = "The rate shock lowers the discount-rate pressure and can support duration-sensitive assets, all else equal."
+        else:
+            rate_read = "There is no policy-rate shock, so the simulated movement comes mainly from the risk-premium assumption."
+        if pass_through < 0.5:
+            pass_read = "The pass-through is low, suggesting the market had already priced in much of the policy move or does not expect it to persist."
+        elif pass_through <= 1.0:
+            pass_read = "The pass-through is moderate to high: market yields move meaningfully, but not more than the policy shock itself."
+        else:
+            pass_read = "The pass-through is above 100%, meaning the shock is assumed to change broader yield-curve expectations, not only the current policy rate."
+        if risk_premium_change_bps > 0:
+            rp_read = "The positive risk-premium shock means investors demand more compensation for risk, which adds pressure to equities and risky assets."
+        elif risk_premium_change_bps < 0:
+            rp_read = "The negative risk-premium shock means risk appetite improves, partly offsetting discount-rate pressure."
+        else:
+            rp_read = "Risk premiums are unchanged, so the scenario isolates the rate channel."
         card(
-            "Regla causal",
-            "Macro matters when it changes cash flows, discount rates, risk premiums, liquidity, or currency.",
-            "quote",
+            "Dynamic reading",
+            f"""
+            This is a <strong>{direction}</strong> scenario. {rate_read}<br><br>
+            {pass_read}<br><br>
+            {rp_read}<br><br>
+            The bond result comes from the duration approximation. The equity result is a simplified sensitivity, not an empirical prediction. In real markets, the actual reaction also depends on whether the move was expected, what happens to earnings, liquidity, inflation expectations, and investor positioning.
+            """,
+            "model",
         )
 
-        chain_cols = st.columns(5)
-        chain = [
-            ("Dato", "inflación, empleo, crecimiento"),
-            ("Expectativa", "consenso y narrativa previa"),
-            ("Sorpresa", "diferencia frente a lo esperado"),
-            ("Canal", "tasas, moneda, liquidez, primas"),
-            ("Portafolio", "bonos, acciones, FX, efectivo"),
-        ]
-        for col, (title, body) in zip(chain_cols, chain):
-            with col:
-                card(title, body, "soft")
+    with tabs[2]:
+        st.subheader("Expectations vs. surprises")
+        with st.expander("Why can good news be bad market news?", expanded=True):
+            st.markdown(
+                """
+                Markets often move because a data point changes expectations.
+                A strong labor-market or inflation report can be economically positive in one sense,
+                but negative for asset prices if it makes investors expect tighter monetary policy.
 
-        if bond_impact < -5:
-            card(
-                "Trampa conceptual",
-                "Una subida de tasas puede mejorar el rendimiento de nuevos instrumentos, pero destruir precio de bonos que ya estaban en el portafolio. No confundas tasa de entrada con mark-to-market.",
-                "trap",
+                The key relationship is:
+
+                **Surprise = Actual data − Expected data**
+
+                The direction of the market reaction depends on what the surprise means for rates, liquidity, earnings, and risk appetite.
+                """
             )
-
-    # ------------------------------------------------------------------
-    # TAB 2.2 Expectations vs surprises
-    # ------------------------------------------------------------------
-    with tabs2[1]:
-        st.markdown("### Expectations vs. Surprises")
-        st.write(
-            "Los mercados no reaccionan solo al dato publicado. Reaccionan a la diferencia entre el dato, la expectativa y lo que ese cambio implica para tasas, liquidez y valoración."
-        )
-
-        col_x, col_y = st.columns([1, 2])
-        with col_x:
-            indicator = st.selectbox("Indicador macro", ["Inflación", "Empleo", "Tasa de política", "Crecimiento"])
-            expected = st.number_input("Expectativa del consenso", value=5.0, step=0.1)
-            actual = st.number_input("Dato publicado", value=6.0, step=0.1)
-            market_position = st.selectbox("Narrativa previa del mercado", ["Esperaba recortes de tasas", "Esperaba tasas estables", "Esperaba endurecimiento monetario"])
-
+        left, right = st.columns([0.9, 1.7])
+        with left:
+            data_type = st.selectbox("Data release", ["Inflation", "Employment", "GDP growth", "Central bank statement"])
+            expected = st.number_input("Expected value", value=4.0, step=0.1, help="Market consensus before the release.")
+            actual = st.number_input("Actual value", value=5.0, step=0.1, help="Reported value after release.")
+            surprise_sensitivity = st.slider("Market sensitivity to surprise", 0.0, 3.0, 1.0, 0.1, help="Educational parameter: higher values amplify the simulated reaction.")
+            prior_rate_cut_probability = st.slider("Prior probability of rate cuts", 0, 100, 55, 5, help="Simplified expectation before the data release.")
         surprise = actual - expected
         hawkish_score = 0.0
-        if indicator in ["Inflación", "Empleo", "Crecimiento"]:
-            hawkish_score = surprise
-        elif indicator == "Tasa de política":
-            hawkish_score = surprise * 1.4
-        if market_position == "Esperaba recortes de tasas":
-            hawkish_score += 0.8
-        elif market_position == "Esperaba endurecimiento monetario":
-            hawkish_score -= 0.4
-
-        if hawkish_score > 0.4:
-            reading = "hawkish"
-            narrative = "El mercado puede anticipar tasas más altas por más tiempo. Bonos de duración larga y acciones growth tienden a sufrir."
-            rate_move = [0, 0.10, 0.16, 0.18, 0.20]
-            equity_move = [0, -0.8, -1.5, -2.0, -2.4]
-        elif hawkish_score < -0.4:
-            reading = "dovish"
-            narrative = "El mercado puede anticipar menor presión de tasas. Bonos y activos de riesgo pueden recibir apoyo si no hay miedo de recesión severa."
-            rate_move = [0, -0.08, -0.13, -0.16, -0.18]
-            equity_move = [0, 0.7, 1.3, 1.8, 2.1]
+        if data_type in ["Inflation", "Employment", "GDP growth"]:
+            hawkish_score = surprise * surprise_sensitivity
         else:
-            reading = "mostly priced in"
-            narrative = "El dato no altera mucho la narrativa previa. El mercado puede moverse poco o buscar otra señal."
-            rate_move = [0, 0.01, 0.00, 0.01, 0.00]
-            equity_move = [0, 0.05, -0.02, 0.04, 0.00]
-
-        with col_y:
-            times = ["Antes", "Publicación", "+5 min", "+30 min", "Cierre"]
-            df_news = pd.DataFrame(
-                {
-                    "Momento": times,
-                    "Cambio tasa 10Y (p.p.)": rate_move,
-                    "Cambio equity (%)": equity_move,
-                }
-            )
-            fig_news = go.Figure()
-            fig_news.add_trace(go.Scatter(x=times, y=df_news["Cambio tasa 10Y (p.p.)"], name="Tasa 10Y", mode="lines+markers", yaxis="y1"))
-            fig_news.add_trace(go.Scatter(x=times, y=df_news["Cambio equity (%)"], name="Equity", mode="lines+markers", yaxis="y2"))
-            fig_news.update_layout(
-                title="Reacción pedagógica intradía ante la sorpresa",
-                yaxis=dict(title="Cambio tasa 10Y (p.p.)"),
-                yaxis2=dict(title="Cambio equity (%)", overlaying="y", side="right"),
+            hawkish_score = (actual - expected) * surprise_sensitivity
+        new_rate_cut_probability = np.clip(prior_rate_cut_probability - 12 * hawkish_score, 0, 100)
+        bond_yield_reaction = 6 * hawkish_score
+        equity_reaction = -0.45 * hawkish_score
+        currency_reaction = 0.25 * hawkish_score
+        times = ["Before release", "Immediate repricing", "Narrative stabilizes"]
+        df_surprise = pd.DataFrame(
+            {
+                "Stage": times,
+                "Rate-cut probability (%)": [prior_rate_cut_probability, new_rate_cut_probability, 0.7 * new_rate_cut_probability + 0.3 * prior_rate_cut_probability],
+                "Bond yield index": [100, 100 + bond_yield_reaction, 100 + 0.75 * bond_yield_reaction],
+                "Equity price index": [100, 100 + equity_reaction, 100 + 0.7 * equity_reaction],
+            }
+        )
+        with right:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df_surprise["Stage"], y=df_surprise["Rate-cut probability (%)"], mode="lines+markers", name="Rate-cut probability (%)", yaxis="y1"))
+            fig.add_trace(go.Scatter(x=df_surprise["Stage"], y=df_surprise["Bond yield index"], mode="lines+markers", name="Bond yield index", yaxis="y2"))
+            fig.add_trace(go.Scatter(x=df_surprise["Stage"], y=df_surprise["Equity price index"], mode="lines+markers", name="Equity price index", yaxis="y2"))
+            fig.update_layout(
+                title="Simplified repricing after a macro surprise",
                 template="plotly_white",
-                height=430,
+                height=420,
+                yaxis=dict(title="Probability (%)"),
+                yaxis2=dict(title="Index level", overlaying="y", side="right"),
                 hovermode="x unified",
+                legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
+                margin=dict(l=20, r=20, t=55, b=90),
             )
-            st.plotly_chart(fig_news, use_container_width=True)
-
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Sorpresa", f"{surprise:+.2f}")
-        m2.metric("Lectura dominante", reading.upper())
-        m3.metric("Pregunta clave", "¿Qué cambia en tasas?")
-        card("Lectura de mercado", narrative, "decision")
+            st.plotly_chart(fig, use_container_width=True)
+        if hawkish_score > 0.25:
+            surprise_label = "hawkish surprise"
+            interpretation = "The actual value is above expectations in a way that may reduce expected rate cuts or increase tightening pressure."
+        elif hawkish_score < -0.25:
+            surprise_label = "dovish surprise"
+            interpretation = "The actual value is below expectations in a way that may increase expected rate cuts or reduce tightening pressure."
+        else:
+            surprise_label = "limited surprise"
+            interpretation = "The release is close enough to expectations that the price reaction may be muted."
         card(
-            "Trampa conceptual",
-            "Un buen dato económico puede ser mala noticia para algunos activos si implica tasas más altas, menor liquidez o menor probabilidad de recortes.",
-            "trap",
+            "Dynamic reading",
+            f"""
+            The release currently looks like a <strong>{surprise_label}</strong>. {interpretation}<br><br>
+            Notice that the same data point can have different market meanings depending on what was already expected.
+            That is why investors should ask: <strong>What changed relative to expectations?</strong>
+            """,
+            "model",
         )
 
-    # ------------------------------------------------------------------
-    # TAB 2.3 Financial system map
-    # ------------------------------------------------------------------
-    with tabs2[2]:
-        st.markdown("### Reality Check ACP: ¿dónde ocurre realmente la inversión?")
-        st.write(
-            "Antes de preguntar qué comprar, pregunta dónde, cómo, con quién, a qué costo, bajo qué reglas y con qué riesgos operativos puedes invertir."
-        )
+    with tabs[3]:
+        st.subheader("Real returns: the return you can actually use")
+        with st.expander("What am I calculating?", expanded=True):
+            st.markdown(
+                """
+                This module converts a nominal return into an approximate after-tax, after-fee, inflation-adjusted return.
+                It helps you see why two products with the same headline yield can have very different real usefulness.
 
-        st.markdown("#### Mapa del sistema financiero")
-        labels = [
-            "Hogares con excedentes",
-            "Empresas",
-            "Gobierno",
-            "Bancos",
-            "Comisionistas",
-            "Fiduciarias / FIC",
-            "Mercado monetario",
-            "Mercado de capitales",
-            "CDT",
-            "TES",
-            "Acciones",
-            "Fondos / ETFs",
-            "Inversionista retail",
-        ]
-        source = [0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 8, 9, 10, 11]
-        target = [3, 4, 5, 7, 7, 8, 7, 11, 8, 9, 10, 11, 12, 12, 12, 12]
-        value = [8, 5, 4, 5, 4, 4, 4, 6, 3, 4, 4, 5, 4, 4, 3, 5]
-        fig_sankey = go.Figure(
+                Approximation:
+                **Net nominal return = nominal return − fees − taxes on income/return**
+
+                **Real return ≈ (1 + net nominal return) / (1 + inflation) − 1**
+                """
+            )
+        left, right = st.columns([0.9, 1.7])
+        with left:
+            nominal_yield = st.slider("Headline nominal return", 0.0, 25.0, 9.0, 0.25) / 100
+            inflation_real = st.slider("Inflation", 0.0, 20.0, 5.0, 0.25) / 100
+            fee_drag = st.slider("Annual fees / costs", 0.0, 5.0, 0.5, 0.1) / 100
+            tax_rate = st.slider("Tax rate applied to investment income", 0.0, 40.0, 15.0, 1.0) / 100
+            alternative_nominal = st.slider("Alternative nominal return", 0.0, 25.0, 6.0, 0.25) / 100
+        net_nominal = nominal_yield * (1 - tax_rate) - fee_drag
+        real_return = (1 + net_nominal) / (1 + inflation_real) - 1
+        alt_net = alternative_nominal * (1 - tax_rate) - fee_drag
+        alt_real = (1 + alt_net) / (1 + inflation_real) - 1
+        comp_df = pd.DataFrame(
+            {
+                "Measure": ["Headline return", "After tax and fees", "Real after tax and fees", "Alternative real after tax and fees"],
+                "Value (%)": [nominal_yield * 100, net_nominal * 100, real_return * 100, alt_real * 100],
+            }
+        )
+        with right:
+            st.plotly_chart(bar_chart(comp_df["Measure"].tolist(), comp_df["Value (%)"].tolist(), "From headline return to usable return", "Return (%)"), use_container_width=True)
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Headline nominal return", pct(nominal_yield))
+        m2.metric("Net nominal return", pct(net_nominal))
+        m3.metric("Real net return", pct(real_return))
+        if real_return < 0:
+            rr_msg = "The investment has a negative real net return under your assumptions. The headline yield does not protect purchasing power."
+        elif real_return < 0.02:
+            rr_msg = "The investment protects purchasing power only modestly. Small changes in inflation, fees, or taxes can change the conclusion."
+        else:
+            rr_msg = "The investment generates a positive real net return under your assumptions. The next question is whether the risk, liquidity, and horizon are acceptable."
+        card("Dynamic reading", rr_msg, "model")
+
+    with tabs[4]:
+        st.subheader("Market architecture: where does the investment actually happen?")
+        with st.expander("Why this tab exists", expanded=True):
+            st.markdown(
+                """
+                An individual investor does not invest in a vacuum. A decision is implemented through a channel:
+                bank, broker, fund manager, platform, exchange, custodian, or regulated vehicle.
+
+                This tab is not a list of institutions. It is a map of **implementation logic**:
+                what you want to do, which channel is usually involved, what vehicle may appear, and which frictions you must examine.
+                """
+            )
+        left, right = st.columns([0.9, 1.7])
+        with left:
+            objective = st.selectbox(
+                "Investment intention",
+                [
+                    "Hold emergency liquidity",
+                    "Earn fixed income for a known horizon",
+                    "Buy diversified equity exposure",
+                    "Buy an individual stock",
+                    "Invest internationally",
+                ],
+            )
+            horizon_arch = st.selectbox("Horizon", ["Very short", "Short", "Medium", "Long"])
+            need_liquidity_arch = st.selectbox("Need for liquidity", ["High", "Moderate", "Low"])
+        architecture = {
+            "Hold emergency liquidity": {
+                "Channel": "Bank, money market fund, or highly liquid platform",
+                "Vehicle": "Cash, savings account, short-term deposit, money market fund",
+                "Main frictions": "Inflation, low real return, fees, withdrawal conditions",
+                "Key question": "Can you access the money when you need it without destroying value?",
+            },
+            "Earn fixed income for a known horizon": {
+                "Channel": "Bank, broker, fund manager, or authorized platform",
+                "Vehicle": "Deposit, bond, bond fund, Treasury exposure",
+                "Main frictions": "Duration, credit risk, reinvestment risk, liquidity, taxes",
+                "Key question": "Are you compensated for inflation, credit, duration, liquidity, and country risk?",
+            },
+            "Buy diversified equity exposure": {
+                "Channel": "Broker, fund platform, ETF platform, pension/fund administrator",
+                "Vehicle": "ETF, mutual fund, index fund, diversified equity fund",
+                "Main frictions": "Expense ratio, tracking error, spread, domicile, taxes, currency",
+                "Key question": "What exposure are you really buying and at what total cost?",
+            },
+            "Buy an individual stock": {
+                "Channel": "Broker or trading platform",
+                "Vehicle": "Common stock, preferred share, ADR",
+                "Main frictions": "Spread, liquidity, concentration, corporate governance, FX, information risk",
+                "Key question": "Do you understand the business, valuation, risk, and role in the portfolio?",
+            },
+            "Invest internationally": {
+                "Channel": "International broker, local intermediary with global access, global fund platform",
+                "Vehicle": "Foreign ETF, ADR, global mutual fund, international bond/equity fund",
+                "Main frictions": "FX conversion, custody, tax treatment, regulation, estate rules, currency risk",
+                "Key question": "Does international exposure reduce concentration enough to justify the added frictions?",
+            },
+        }[objective]
+        flow_labels = ["Investor", "Intermediary / channel", "Investment vehicle", "Underlying exposure", "Investor outcome"]
+        flow_values = [1, 1, 1, 1]
+        flow_text = [objective, architecture["Channel"], architecture["Vehicle"], "Assets, issuers, markets, currencies", "Return after risk, costs, taxes, and behavior"]
+        fig_flow = go.Figure(
             data=[
                 go.Sankey(
-                    node=dict(label=labels, pad=15, thickness=15),
-                    link=dict(source=source, target=target, value=value),
+                    arrangement="snap",
+                    node=dict(label=[f"{flow_labels[i]}<br>{flow_text[i]}" for i in range(len(flow_labels))], pad=18, thickness=20),
+                    link=dict(source=[0, 1, 2, 3], target=[1, 2, 3, 4], value=flow_values),
                 )
             ]
         )
-        fig_sankey.update_layout(title="De excedentes y necesidades a productos reales", height=520)
-        st.plotly_chart(fig_sankey, use_container_width=True)
-
-        st.markdown("#### Checklist de implementación")
-        product = st.selectbox("Selecciona una decisión retail", ["Abrir un CDT", "Comprar TES", "Invertir en fondo de deuda", "Comprar acción local", "Comprar ETF global", "Usar broker internacional"])
-        checklist = {
-            "Abrir un CDT": ["Banco o plataforma", "Tasa efectiva anual", "Plazo", "Penalidad/liquidez", "Seguro de depósito", "Impuestos sobre rendimientos"],
-            "Comprar TES": ["Comisionista/plataforma autorizada", "Precio limpio/sucio", "YTM", "Duración", "Liquidez secundaria", "Riesgo país y tasas"],
-            "Invertir en fondo de deuda": ["Fiduciaria/administradora", "Reglamento", "Comisión", "Perfil de duración", "Calidad crediticia", "Liquidez de rescate"],
-            "Comprar acción local": ["Comisionista", "Spread", "Volumen", "Gobierno corporativo", "Dividendos", "Riesgo de concentración local"],
-            "Comprar ETF global": ["Broker", "Expense ratio", "Domicilio", "Réplica", "Tracking error", "FX e impuestos"],
-            "Usar broker internacional": ["Jurisdicción", "Custodia", "Comisiones", "FX", "Impuestos", "Protección al inversionista"],
-        }
-        st.dataframe(pd.DataFrame({"Aspecto que debes verificar": checklist[product]}), use_container_width=True, hide_index=True)
-
-        recommendation = st.text_area("Recomendación concreta ACP", "Recomendaría esta vía solo si...")
-        discarded = st.text_area("Alternativa descartada y razón", "Descartaría... porque...")
-        rule = st.text_input("Regla operativa para IPS / portafolio", "Antes de invertir, verificaré costos, liquidez, regulación y coherencia con mi horizonte.")
-
-        rc_text = f"""REALITY CHECK ACP — IMPLEMENTACIÓN REAL
-
-Decisión analizada: {product}
-
-Recomendación concreta:
-{recommendation}
-
-Alternativa descartada:
-{discarded}
-
-Regla operativa:
-{rule}
-"""
-        st.code(rc_text, language="text")
-        download_text_button("Descargar Reality Check ACP", rc_text, "reality_check_acp.txt")
-
-    # ------------------------------------------------------------------
-    # TAB 2.4 Colombia Factor
-    # ------------------------------------------------------------------
-    with tabs2[3]:
-        st.markdown("### Colombia Factor: familiaridad no es seguridad")
-        st.write(
-            "Simula cómo concentración local, inflación, devaluación, riesgo país y activos globales pueden cambiar el resultado de un portafolio medido desde Colombia."
-        )
-
-        col_cf1, col_cf2 = st.columns([1, 2])
-        with col_cf1:
-            home_bias = st.slider("Asignación en activos Colombia", 0, 100, 80, 5) / 100
-            years_cf = st.slider("Horizonte del escenario", 1, 15, 5)
-            local_return = st.slider("Retorno nominal local esperado", 0.0, 25.0, 10.0, 0.5) / 100
-            global_usd_return = st.slider("Retorno global esperado en USD", -10.0, 20.0, 7.0, 0.5) / 100
-            cop_devaluation = st.slider("Devaluación anual COP/USD", -10.0, 25.0, 5.0, 0.5) / 100
-            local_inflation = st.slider("Inflación local", 0.0, 20.0, 6.0, 0.5) / 100
-            country_risk_drag = st.slider("Arrastre por riesgo país / liquidez", 0.0, 8.0, 1.5, 0.25) / 100
-
-        with col_cf2:
-            t_cf = np.arange(years_cf + 1)
-            global_cop_return = (1 + global_usd_return) * (1 + cop_devaluation) - 1
-            local_net = max(local_return - country_risk_drag, -0.95)
-            combined_nominal = home_bias * local_net + (1 - home_bias) * global_cop_return
-
-            local_path = 100 * ((1 + local_net) ** t_cf) / ((1 + local_inflation) ** t_cf)
-            global_path = 100 * ((1 + global_cop_return) ** t_cf) / ((1 + local_inflation) ** t_cf)
-            combined_path = 100 * ((1 + combined_nominal) ** t_cf) / ((1 + local_inflation) ** t_cf)
-
-            df_cf = pd.DataFrame(
-                {
-                    "Año": t_cf,
-                    "100% Colombia — real COP": local_path,
-                    "100% global — real COP": global_path,
-                    "Portafolio combinado — real COP": combined_path,
-                }
-            )
-            fig_cf = make_line_chart(
-                df_cf,
-                "Año",
-                ["100% Colombia — real COP", "100% global — real COP", "Portafolio combinado — real COP"],
-                "Base 100: desempeño real medido desde Colombia",
-                "Índice real base 100",
-            )
-            st.plotly_chart(fig_cf, use_container_width=True)
-
-        home_bias_score = home_bias * 100
-        if home_bias_score >= 80:
-            card(
-                "Advertencia de concentración",
-                "Tu portafolio está altamente expuesto al mismo país donde probablemente están tu empleo, tus ingresos, tu familia, tus gastos y buena parte de tu patrimonio no financiero.",
-                "trap",
-            )
-        elif home_bias_score <= 30:
-            card(
-                "Advertencia de implementación",
-                "Baja concentración local puede reducir riesgo país, pero introduce FX, jurisdicción, costos, impuestos y riesgo operativo. Diversificar afuera no elimina el riesgo: lo transforma.",
-                "trap",
-            )
-        else:
-            card(
-                "Lectura balanceada",
-                "Existe una combinación más razonable entre familiaridad local y exposición global. El punto no es abandonar Colombia; es evitar que la familiaridad sustituya el análisis.",
-                "decision",
-            )
-
-        card("Frase clave", "Home bias feels familiar, but familiarity is not the same as safety.", "quote")
-
-    # ------------------------------------------------------------------
-    # TAB 2.5 ACP Market Brief
-    # ------------------------------------------------------------------
-    with tabs2[4]:
-        st.markdown("### ACP Market Opening Brief Builder")
-        st.write(
-            "Convierte una noticia o movimiento semanal en una señal de inversión. No reportes titulares: interpreta qué cambió, por qué podría importar y qué debe monitorear un inversionista."
-        )
-
-        desk = st.selectbox("División ACP", list(DESK_DATA.keys()))
-        st.markdown("**Señales sugeridas para monitorear:** " + ", ".join(DESK_DATA[desk]))
-
-        b1, b2 = st.columns(2)
-        with b1:
-            movement = st.text_area("1. Movimiento clave observado", "Ej.: El rendimiento del Treasury 10Y subió durante la semana...")
-            catalyst = st.text_area("2. Posible catalizador", "Ej.: El dato de inflación sorprendió al alza frente al consenso...")
-            signal = st.text_area("3. Señal a monitorear", "Ej.: Próximo dato de inflación / reunión de banco central / spread...")
-        with b2:
-            implication = st.text_area("4. Implicación general para portafolio", "Ej.: Revisar duración, exposición a growth, liquidez y moneda...")
-            risk = st.text_area("5. Riesgo o trampa conceptual", "Ej.: No confundir buena noticia económica con buena noticia para precios...")
-            conclusion = st.text_area("6. Mini-conclusión ejecutiva", "Ej.: No recomendamos cambiar la estrategia por ruido semanal, pero sí monitorear...")
-
-        brief_text = f"""ACP MARKET OPENING BRIEF
-
-Desk: {desk}
-
-1. Key weekly movement:
-{movement}
-
-2. Probable catalyst:
-{catalyst}
-
-3. Signal to monitor next:
-{signal}
-
-4. Portfolio implication:
-{implication}
-
-5. Risk / conceptual trap:
-{risk}
-
-6. Executive mini-conclusion:
-{conclusion}
-
-Standard: What changed? Why might it matter? What risk does it reveal? What should an investor monitor next?
-"""
-        st.code(brief_text, language="text")
-        download_text_button("Descargar ACP Market Brief", brief_text, "acp_market_brief.txt")
-
-        st.markdown("#### Checklist de calidad")
-        check_df = pd.DataFrame(
-            {
-                "Criterio": [
-                    "No es una lista de titulares",
-                    "Identifica catalizador probable",
-                    "Conecta con mecanismo financiero",
-                    "Explica implicación para portafolio",
-                    "Incluye riesgo o trampa conceptual",
-                    "Cierra con mini-conclusión ejecutiva",
-                ],
-                "Pregunta de verificación": [
-                    "¿Dices qué cambió?",
-                    "¿Dices por qué pudo cambiar?",
-                    "¿Mencionas tasas, flujos, liquidez, moneda, valoración, riesgo o expectativas?",
-                    "¿Afecta duración, equity, FX, liquidez, costos o benchmark?",
-                    "¿Evitas conclusiones demasiado seguras?",
-                    "¿Puede decirse en menos de 60 segundos?",
-                ],
-            }
-        )
-        st.dataframe(check_df, use_container_width=True, hide_index=True)
-
+        fig_flow.update_layout(title="Implementation flow", height=420, font_size=11, margin=dict(l=10, r=10, t=50, b=10))
+        with right:
+            st.plotly_chart(fig_flow, use_container_width=True)
+        details = pd.DataFrame([architecture]).T.reset_index()
+        details.columns = ["Dimension", "Reading"]
+        st.dataframe(details, use_container_width=True, hide_index=True)
         card(
-            "Cierre de Clase 2",
-            "No necesitas predecir la economía. Pero sí debes entender el ambiente donde vive tu portafolio.",
-            "quote",
+            "Decision rule",
+            f"Before asking what to buy, ask where, how, through whom, at what cost, under what risks, and under what rules. For your selected intention, the key question is: <strong>{architecture['Key question']}</strong>",
+            "decision",
         )
+
+    with tabs[5]:
+        st.subheader("Emerging market lens: familiarity is not safety")
+        with st.expander("What does this simulator show?", expanded=True):
+            st.markdown(
+                """
+                This module compares a portfolio concentrated in a local emerging market with a portfolio that includes global exposure.
+                It is not claiming one is always better. It shows the trade-off between local familiarity and broader diversification.
+
+                You control local allocation, local returns, global returns, inflation, currency movement, and a country-risk penalty.
+                """
+            )
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            local_weight = st.slider("Local-market allocation", 0, 100, 75, 5) / 100
+            global_weight = 1 - local_weight
+            local_return = st.slider("Expected local nominal return", -10.0, 25.0, 8.0, 0.5) / 100
+            global_return = st.slider("Expected global nominal return", -10.0, 20.0, 7.0, 0.5) / 100
+            fx_move = st.slider("Home currency depreciation vs. global currency", -15.0, 30.0, 4.0, 0.5) / 100
+            local_inflation = st.slider("Local inflation", 0.0, 20.0, 5.5, 0.25) / 100
+            country_risk_penalty = st.slider("Country-risk / liquidity penalty", 0.0, 8.0, 1.5, 0.25) / 100
+            years_em = st.slider("Horizon", 1, 20, 10)
+        t_em = np.arange(0, years_em + 1)
+        local_path = 100 * ((1 + local_return - country_risk_penalty) / (1 + local_inflation)) ** t_em
+        global_path_local_currency = 100 * ((1 + global_return) * (1 + fx_move) / (1 + local_inflation)) ** t_em
+        mixed_path = local_weight * local_path + global_weight * global_path_local_currency
+        fully_local = local_path
+        balanced_50 = 0.5 * local_path + 0.5 * global_path_local_currency
+        df_em = pd.DataFrame({"Year": t_em, "Selected mix — real index": mixed_path, "100% local — real index": fully_local, "50/50 local/global — real index": balanced_50})
+        with right:
+            st.plotly_chart(line_chart(df_em, "Year", ["Selected mix — real index", "100% local — real index", "50/50 local/global — real index"], "Real wealth index under emerging-market assumptions", "Real index, base 100"), use_container_width=True)
+        local_final = fully_local[-1]
+        selected_final = mixed_path[-1]
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Local weight", pct(local_weight))
+        c2.metric("Selected final real index", f"{selected_final:,.1f}")
+        c3.metric("100% local final real index", f"{local_final:,.1f}")
+        if local_weight > 0.8:
+            home_bias_msg = "Your portfolio is highly exposed to the local environment. That may feel familiar, but it can concentrate income, currency, political, and liquidity risks."
+        elif local_weight < 0.25:
+            home_bias_msg = "Your portfolio is strongly global. This may reduce local concentration, but currency, tax, access, and behavioral risks become more important."
+        else:
+            home_bias_msg = "Your allocation mixes local familiarity with global exposure. The quality of this decision depends on costs, currency, liquidity, and the role each exposure plays."
+        card("Dynamic reading", f"{home_bias_msg}<br><br>In this scenario, currency movement is not simply a travel issue. It changes the local-currency value of global assets and the real purchasing power of the portfolio.", "model")
+
+# =============================================================================
+# FINANCIAL GLOSSARY
+# =============================================================================
+
+elif selected_topic == "Financial Glossary":
+    st.markdown('<div class="main-title">Financial Glossary</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">A searchable and organized glossary of core investment portfolio management concepts.</div>', unsafe_allow_html=True)
+    card(
+        "How to use this glossary",
+        "Use the search box to look for a term, concept, risk, asset, or decision. Use the category filter to narrow the glossary by topic. Each definition explains not only what the term means, but why it matters for investment judgment.",
+        "anchor",
+    )
+    glossary_df = pd.DataFrame(GLOSSARY)
+    categories = sorted(glossary_df["Category"].unique().tolist())
+    col1, col2, col3 = st.columns([1.2, 1.2, 0.8])
+    with col1:
+        query = st.text_input("Search glossary", placeholder="Try: duration, ETF, beta, inflation, spread...")
+    with col2:
+        selected_categories = st.multiselect("Filter by category", categories, default=categories)
+    with col3:
+        sort_by = st.selectbox("Sort by", ["Term", "Category"])
+    filtered = glossary_df[glossary_df["Category"].isin(selected_categories)]
+    if query.strip():
+        q = query.lower().strip()
+        mask = (
+            filtered["Term"].str.lower().str.contains(q, regex=False)
+            | filtered["Definition"].str.lower().str.contains(q, regex=False)
+            | filtered["Why it matters"].str.lower().str.contains(q, regex=False)
+            | filtered["Category"].str.lower().str.contains(q, regex=False)
+        )
+        filtered = filtered[mask]
+    filtered = filtered.sort_values(sort_by)
+    st.metric("Terms shown", len(filtered))
+    view_mode = st.radio("View mode", ["Concept cards", "Compact table"], horizontal=True)
+    if view_mode == "Compact table":
+        st.dataframe(filtered, use_container_width=True, hide_index=True)
+        csv = filtered.to_csv(index=False).encode("utf-8")
+        st.download_button("Download filtered glossary as CSV", data=csv, file_name="financial_glossary_filtered.csv", mime="text/csv")
+    else:
+        if len(filtered) == 0:
+            st.warning("No terms match your current search.")
+        for _, row in filtered.iterrows():
+            st.markdown(
+                f"""
+<div class="concept-card">
+    <div class="kicker">{row['Category']}</div>
+    <h4 style="margin-top:0.1rem; margin-bottom:0.35rem; color:{PRIMARY};">{row['Term']}</h4>
+    <p><strong>Definition:</strong> {row['Definition']}</p>
+    <p><strong>Why it matters:</strong> {row['Why it matters']}</p>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
