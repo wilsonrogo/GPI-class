@@ -491,6 +491,7 @@ st.sidebar.caption("Interactive concepts for Investment Portfolio Management")
 TOPICS = [
     "Why Invest?",
     "Macroeconomic Context & Financial Markets",
+    "Market Structure & Real Decisions",
     "Financial Glossary",
 ]
 
@@ -1364,6 +1365,607 @@ elif selected_topic == "Macroeconomic Context & Financial Markets":
         else:
             home_bias_msg = "Your allocation mixes local familiarity with global exposure. The quality of this decision depends on costs, currency, liquidity, and the role each exposure plays."
         card("Dynamic reading", f"{home_bias_msg}<br><br>In this scenario, currency movement is not simply a travel issue. It changes the local-currency value of global assets and the real purchasing power of the portfolio.", "model")
+
+
+# =============================================================================
+# TOPIC 3 — MARKET STRUCTURE AND REAL DECISIONS
+# =============================================================================
+
+elif selected_topic == "Market Structure & Real Decisions":
+    topic_cover(
+        title="Market Structure & Real Decisions",
+        subtitle="Prices, intermediaries, spreads, order choice, volatility, activity, DCA, and investor discipline.",
+        quote="The market is there to serve you, not to instruct you.",
+        author="Benjamin Graham",
+        source="The Intelligent Investor — Mr. Market framework",
+        facts=[
+            (
+                "The Flash Crash as an anti-case",
+                "Modern markets can move violently in minutes. The lesson for this course is not how to trade faster; it is how fragile liquidity, speed, incentives, and behavior can become when activity replaces judgment.",
+                "Bloomberg reporting on the Flash Crash / Navinder Singh Sarao"
+            ),
+            (
+                "Activity is not alpha",
+                "Many retail investors confuse trading frequency with skill. Costs, spreads, taxes, slippage, and emotional timing can turn a reasonable asset into a poor investor outcome.",
+                "Barber & Odean, Trading Is Hazardous to Your Wealth"
+            )
+        ],
+        anchor="The market does not reward activity — it rewards good decisions.",
+        question="When prices move, are you making an investment decision or simply reacting to the market?",
+    )
+
+    tabs = st.tabs(
+        [
+            "Big Picture",
+            "Know / Believe / Wonder",
+            "Spread & Liquidity Lab",
+            "Market or Limit?",
+            "Activity Is Not Alpha",
+            "Volatility & Mr. Market",
+            "DCA vs Timing",
+            "Investor Profile & IPS",
+        ]
+    )
+
+    with tabs[0]:
+        st.subheader("From macro context to real market decisions")
+        c1, c2 = st.columns([1.15, 1])
+        with c1:
+            card(
+                "Core idea",
+                """
+                In the previous topic, you studied how macro conditions affect inflation, rates,
+                currency, liquidity, expectations, and risk appetite. In this topic, that environment
+                becomes concrete: prices, bid, ask, spread, liquidity, order types, volatility, and investor behavior.
+                """,
+                "concept",
+            )
+            card(
+                "Decision principle",
+                """
+                A market price is not an instruction. It is a quote produced by buyers, sellers,
+                information, liquidity, urgency, and sometimes fear. Your job is to decide whether that quote
+                fits your rule, your horizon, and your mandate.
+                """,
+                "decision",
+            )
+            card(
+                "What this lab will test",
+                """
+                You will experiment with four frictions that retail investors often underestimate:
+                <span class="pill">spread</span>
+                <span class="pill">slippage</span>
+                <span class="pill">overtrading</span>
+                <span class="pill">emotional timing</span>
+                <span class="pill">lack of IPS rules</span>
+                """,
+                "model",
+            )
+        with c2:
+            map_df = pd.DataFrame(
+                {
+                    "Concept": ["Bid / Ask", "Spread", "Market order", "Limit order", "Volatility", "DCA", "IPS rule"],
+                    "What it asks": [
+                        "What price is actually executable?",
+                        "What is the implicit cost of immediacy?",
+                        "Do I prioritize execution?",
+                        "Do I prioritize price control?",
+                        "Is price movement risk, opportunity, or noise?",
+                        "Can discipline be automated?",
+                        "What protects me from reacting?",
+                    ],
+                    "Investor mistake": [
+                        "Believing the screen price is guaranteed",
+                        "Ignoring hidden costs",
+                        "Buying urgency in illiquid markets",
+                        "Missing execution when price matters less",
+                        "Selling because the chart feels uncomfortable",
+                        "Thinking it guarantees higher returns",
+                        "Writing rules after emotions arrive",
+                    ],
+                }
+            )
+            st.dataframe(map_df, hide_index=True, use_container_width=True)
+        card(
+            "ACP standard",
+            """
+            In Aurea Capital Partners, a recommendation is incomplete if it only says what to buy.
+            It must also explain how to execute, under what liquidity conditions, at what cost, and under what behavioral rule.
+            """,
+            "anchor",
+        )
+
+    with tabs[1]:
+        st.subheader("Opening diagnostic: What do you know, believe, and wonder?")
+        with st.expander("How to use this in class", expanded=True):
+            st.markdown(
+                """
+                Use this as a **10-minute opening activity**. Students work in pairs or small groups.
+                The goal is not to embarrass anyone. The goal is to reveal that real investing requires understanding
+                execution, intermediaries, spreads, and liquidity — topics that may seem less glamorous than returns but often determine results.
+                """
+            )
+        concept = st.selectbox(
+            "Choose a concept for the diagnostic",
+            [
+                "Price",
+                "Broker / intermediary",
+                "Bid",
+                "Ask",
+                "Bid-ask spread",
+                "Liquidity",
+                "Market order",
+                "Limit order",
+                "Volatility",
+                "DCA",
+            ],
+            key="kbw_concept",
+        )
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown("#### What do I know?")
+            know = st.text_area(
+                "A fact, definition, or example you can explain.",
+                value="",
+                height=120,
+                key="kbw_know",
+            )
+        with col2:
+            st.markdown("#### What do I believe?")
+            believe = st.text_area(
+                "An intuition, assumption, or possible misconception.",
+                value="",
+                height=120,
+                key="kbw_believe",
+            )
+        with col3:
+            st.markdown("#### What do I wonder?")
+            wonder = st.text_area(
+                "A question you need answered before investing real money.",
+                value="",
+                height=120,
+                key="kbw_wonder",
+            )
+        st.markdown("#### Group synthesis")
+        synthesis = pd.DataFrame(
+            {
+                "Prompt": ["What do I know?", "What do I believe?", "What do I wonder?"],
+                "Your response": [know, believe, wonder],
+            }
+        )
+        st.dataframe(synthesis, hide_index=True, use_container_width=True)
+        card(
+            "Teaching purpose",
+            f"""
+            For <strong>{concept}</strong>, separate knowledge from belief and belief from questions.
+            A disciplined investor does not need to know everything before starting to learn, but must know where uncertainty remains.
+            """,
+            "decision",
+        )
+
+    with tabs[2]:
+        st.subheader("Spread & Liquidity Lab")
+        with st.expander("What does this simulator teach?", expanded=True):
+            st.markdown(
+                """
+                The **bid-ask spread** is the market charging you for immediacy. In liquid assets,
+                the cost may be small. In illiquid assets or stressed markets, the cost can become meaningful.
+
+                This simulator shows how spread, order size, and market stress affect the cost of entering and exiting a position.
+                It is a simplified educational model, not an execution algorithm.
+                """
+            )
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            mid_price = st.number_input("Mid price", min_value=1.0, max_value=1000.0, value=100.0, step=1.0, key="spread_mid")
+            spread_bps = st.slider("Quoted bid-ask spread", 1, 500, 20, 1, help="100 bps = 1.00% of price", key="spread_bps")
+            trade_value = st.number_input("Trade value", min_value=100.0, max_value=1_000_000.0, value=10_000.0, step=500.0, key="spread_trade")
+            commission_bps = st.slider("Commission / explicit cost", 0, 150, 10, 1, help="Explicit transaction cost in basis points.", key="spread_comm")
+            stress_multiplier = st.slider("Market stress multiplier", 1.0, 5.0, 1.0, 0.25, help="Stress can widen spreads and worsen execution.", key="spread_stress")
+            liquidity_depth = st.number_input("Available depth near quoted price", min_value=100.0, max_value=1_000_000.0, value=50_000.0, step=1_000.0, help="Approximate volume available without meaningful price impact.", key="spread_depth")
+        effective_spread_bps = spread_bps * stress_multiplier
+        half_spread_cost = effective_spread_bps / 20_000
+        commission_cost = commission_bps / 10_000
+        size_pressure = max(0.0, trade_value / liquidity_depth - 1.0)
+        slippage_cost = min(0.08, 0.0025 * size_pressure * stress_multiplier)
+        one_way_cost = half_spread_cost + commission_cost + slippage_cost
+        round_trip_cost = 2 * one_way_cost
+        ask_price = mid_price * (1 + effective_spread_bps / 20_000)
+        bid_price = mid_price * (1 - effective_spread_bps / 20_000)
+        costs_df = pd.DataFrame(
+            {
+                "Cost component": ["Half-spread", "Commission", "Size/slippage pressure", "One-way total", "Round-trip total"],
+                "Cost (%)": [half_spread_cost * 100, commission_cost * 100, slippage_cost * 100, one_way_cost * 100, round_trip_cost * 100],
+            }
+        )
+        with right:
+            st.plotly_chart(bar_chart(costs_df["Cost component"].tolist(), costs_df["Cost (%)"].tolist(), "Execution costs are not always visible", "Cost (%)"), use_container_width=True)
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Bid", f"{bid_price:,.2f}")
+        m2.metric("Ask", f"{ask_price:,.2f}")
+        m3.metric("One-way cost", pct(one_way_cost))
+        m4.metric("Round-trip cost", pct(round_trip_cost))
+        if round_trip_cost > 0.03:
+            reading = "The round-trip cost is large. Frequent trading would need a very strong edge just to break even. Liquidity is not a detail here."
+        elif round_trip_cost > 0.01:
+            reading = "Costs are not catastrophic, but they are meaningful. A few unnecessary trades can erase a material part of expected return."
+        else:
+            reading = "Execution costs look contained in this scenario. The main risk may be behavioral: acting too often because trading feels cheap."
+        card(
+            "Dynamic reading",
+            f"{reading}<br><br><strong>Question:</strong> Is the investor paying for an investment decision, or paying for urgency?",
+            "model",
+        )
+
+    with tabs[3]:
+        st.subheader("Market or Limit? Order choice as a decision")
+        with st.expander("How to use this tab", expanded=True):
+            st.markdown(
+                """
+                This tab supports your in-class mini-activity. Students choose an order type for each situation.
+                The goal is not to memorize a rule. The goal is to identify the trade-off:
+
+                **Market order = execution certainty, weaker price control.**
+
+                **Limit order = price control, weaker execution certainty.**
+                """
+            )
+        scenarios = pd.DataFrame(
+            {
+                "Situation": [
+                    "Highly liquid S&P 500 ETF during normal trading hours",
+                    "Small local stock with low trading volume",
+                    "Asset moving sharply after unexpected news",
+                    "Monthly DCA contribution into a broad ETF",
+                    "Position where avoiding overpayment matters more than immediate execution",
+                ],
+                "Usually better answer": ["Market or disciplined limit", "Limit", "Limit or wait", "Rule-based simple execution", "Limit"],
+                "Why": [
+                    "Liquidity is high and spreads are usually tight, but a limit order can still impose discipline.",
+                    "Low liquidity means the screen price may not be the executable price.",
+                    "Volatility can widen spreads and increase slippage. Urgency becomes expensive.",
+                    "The core decision is discipline and consistency, not predicting the exact intraday price.",
+                    "The investor explicitly values price control over execution certainty.",
+                ],
+            }
+        )
+        answers = []
+        for i, row in scenarios.iterrows():
+            choice = st.radio(
+                row["Situation"],
+                ["Market order", "Limit order", "Hold / wait", "Rule-based automatic execution"],
+                horizontal=True,
+                key=f"order_choice_{i}",
+            )
+            answers.append(choice)
+        debrief = scenarios.copy()
+        debrief["Your choice"] = answers
+        st.dataframe(debrief[["Situation", "Your choice", "Usually better answer", "Why"]], hide_index=True, use_container_width=True)
+        card(
+            "Key takeaway",
+            "Order choice is not a technical detail. It reveals what you prioritize: speed, price control, discipline, or emotional reaction.",
+            "decision",
+        )
+
+    with tabs[4]:
+        st.subheader("Activity Is Not Alpha: The cost of doing something")
+        with st.expander("Classroom use", expanded=True):
+            st.markdown(
+                """
+                This is the main experiential simulator for Class 3. The instructor can reveal the price path one round at a time.
+                Students decide whether to buy, sell, or hold without seeing the future.
+
+                The learning objective is to show that **trading feels productive**, but frequent action can reduce net wealth through
+                transaction costs, spreads, slippage, and emotional timing — even when the asset eventually follows a clear trend.
+                """
+            )
+        scenario = st.selectbox(
+            "Price story",
+            ["Volatile upward trend", "Drawdown and recovery", "Sideways noisy market"],
+            key="activity_scenario",
+        )
+        path_map = {
+            "Volatile upward trend": [100, 103, 98, 105, 101, 112, 108, 118, 115, 126],
+            "Drawdown and recovery": [100, 96, 90, 84, 88, 94, 101, 108, 113, 119],
+            "Sideways noisy market": [100, 102, 99, 101, 97, 100, 103, 98, 101, 100],
+        }
+        news_map = {
+            "Volatile upward trend": [
+                "Initial evaluation: broad ETF after a normal market week.",
+                "Optimistic earnings headlines lift prices.",
+                "Rates surprise higher; markets sell off.",
+                "Analysts call the pullback temporary.",
+                "A negative macro headline creates doubt.",
+                "Markets rally on better liquidity conditions.",
+                "Short-term profit taking appears.",
+                "Strong flows support the ETF.",
+                "Volatility returns, but fundamentals look stable.",
+                "Final period: the long-term trend is now visible.",
+            ],
+            "Drawdown and recovery": [
+                "Initial evaluation: the asset looks reasonable but not cheap.",
+                "Small decline after cautious central-bank language.",
+                "Risk-off mood spreads across markets.",
+                "Headlines are negative; many investors panic.",
+                "No clear fundamental damage, but uncertainty remains.",
+                "Market begins to recover as fear fades.",
+                "Prices return near the starting point.",
+                "Momentum improves after stronger data.",
+                "Investors who sold early begin to re-enter.",
+                "Final period: recovery becomes clear only in hindsight.",
+            ],
+            "Sideways noisy market": [
+                "Initial evaluation: no strong trend is visible.",
+                "Small rally creates optimism.",
+                "A weak headline reverses sentiment.",
+                "Market recovers slightly.",
+                "Another decline creates frustration.",
+                "No major change in fundamentals.",
+                "Short rally triggers FOMO.",
+                "Price falls again.",
+                "Market returns close to prior levels.",
+                "Final period: most movement was noise.",
+            ],
+        }
+        prices = np.array(path_map[scenario], dtype=float)
+        news = news_map[scenario]
+        left, right = st.columns([0.9, 1.7])
+        with left:
+            reveal_round = st.slider("Reveal up to round", 1, len(prices), 5, help="Instructor can move this gradually during class.", key="activity_reveal")
+            initial_cash = st.number_input("Initial cash", min_value=1000.0, max_value=100000.0, value=10000.0, step=500.0, key="activity_cash")
+            trade_fraction = st.slider("Buy/sell fraction per decision", 5, 100, 25, 5, help="Percentage of current cash to buy or current shares to sell.", key="activity_fraction") / 100
+            trans_cost_bps = st.slider("Transaction cost + spread", 0, 250, 35, 5, help="Applied each time the investor buys or sells.", key="activity_cost") / 10000
+        visible_df = pd.DataFrame({"Round": np.arange(1, reveal_round + 1), "Price": prices[:reveal_round], "Information available": news[:reveal_round]})
+        with right:
+            fig_price = go.Figure()
+            fig_price.add_trace(go.Scatter(x=np.arange(1, reveal_round + 1), y=prices[:reveal_round], mode="lines+markers", name="Visible price"))
+            fig_price.update_layout(title="Price revealed so far", template="plotly_white", height=390, xaxis_title="Round", yaxis_title="Price", margin=dict(l=20, r=20, t=55, b=45))
+            st.plotly_chart(fig_price, use_container_width=True)
+        st.markdown("#### Available information")
+        st.dataframe(visible_df, hide_index=True, use_container_width=True)
+        st.markdown("#### Your decisions")
+        decisions = []
+        decision_cols = st.columns(2)
+        for i in range(reveal_round):
+            with decision_cols[i % 2]:
+                decision = st.selectbox(
+                    f"Round {i + 1} — price {prices[i]:,.2f}",
+                    ["Hold", "Buy", "Sell"],
+                    key=f"activity_decision_{scenario}_{i}",
+                    help=news[i],
+                )
+                decisions.append(decision)
+        cash = float(initial_cash)
+        shares = 0.0
+        rows = []
+        for i, decision in enumerate(decisions):
+            price = prices[i]
+            trade_value_i = 0.0
+            if decision == "Buy" and cash > 0:
+                spend = cash * trade_fraction
+                cost = spend * trans_cost_bps
+                shares += max(0.0, spend - cost) / price
+                cash -= spend
+                trade_value_i = spend
+            elif decision == "Sell" and shares > 0:
+                shares_to_sell = shares * trade_fraction
+                proceeds = shares_to_sell * price
+                cost = proceeds * trans_cost_bps
+                shares -= shares_to_sell
+                cash += max(0.0, proceeds - cost)
+                trade_value_i = proceeds
+            value = cash + shares * price
+            rows.append({"Round": i + 1, "Price": price, "Decision": decision, "Cash": cash, "Shares": shares, "Portfolio value": value, "Trade value": trade_value_i})
+        path_df = pd.DataFrame(rows)
+        final_price_visible = prices[reveal_round - 1]
+        student_value = cash + shares * final_price_visible
+        # Benchmark 1: invest all at first visible price and hold
+        bh_cost = initial_cash * trans_cost_bps
+        bh_shares = (initial_cash - bh_cost) / prices[0]
+        bh_value = bh_shares * final_price_visible
+        # Benchmark 2: equal DCA purchases over revealed rounds
+        dca_cash = initial_cash
+        dca_shares = 0.0
+        dca_contribution = initial_cash / reveal_round
+        for i in range(reveal_round):
+            spend = min(dca_contribution, dca_cash)
+            cost = spend * trans_cost_bps
+            dca_shares += max(0.0, spend - cost) / prices[i]
+            dca_cash -= spend
+        dca_value = dca_cash + dca_shares * final_price_visible
+        cash_value = initial_cash
+        summary = pd.DataFrame(
+            {
+                "Strategy": ["Your decisions", "Buy and hold", "Rule-based DCA", "Stay in cash"],
+                "Final wealth": [student_value, bh_value, dca_value, cash_value],
+                "Net return (%)": [(student_value / initial_cash - 1) * 100, (bh_value / initial_cash - 1) * 100, (dca_value / initial_cash - 1) * 100, 0.0],
+                "Trades": [sum(1 for d in decisions if d != "Hold"), 1, reveal_round, 0],
+            }
+        )
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Your final wealth", money(student_value))
+        c2.metric("Buy & hold", money(bh_value))
+        c3.metric("DCA", money(dca_value))
+        c4.metric("Trades", int(summary.loc[0, "Trades"]))
+        st.plotly_chart(bar_chart(summary["Strategy"].tolist(), summary["Final wealth"].tolist(), "Final wealth by strategy", "Final wealth", text_suffix=""), use_container_width=True)
+        with st.expander("Show decision path", expanded=False):
+            st.dataframe(path_df, hide_index=True, use_container_width=True)
+        best_strategy = summary.sort_values("Final wealth", ascending=False).iloc[0]["Strategy"]
+        cost_gap = max(bh_value, dca_value, cash_value) - student_value
+        if int(summary.loc[0, "Trades"]) >= max(4, reveal_round // 2) and student_value < max(bh_value, dca_value):
+            activity_msg = "Your strategy traded frequently and underperformed a simpler rule. The issue was not only price movement; it was the cost of reacting repeatedly."
+        elif best_strategy == "Your decisions":
+            activity_msg = "Your decisions performed best in this partial scenario. The next question is whether the process was repeatable or partly luck under this specific path."
+        else:
+            activity_msg = f"A simpler benchmark did better by approximately {money(cost_gap)}. This does not prove that activity is always bad; it proves activity needs a clear edge after costs."
+        card(
+            "Dynamic reading",
+            f"{activity_msg}<br><br><strong>Closing question:</strong> How much of the result came from investment judgment, and how much came from the feeling that every price movement required action?",
+            "model",
+        )
+
+    with tabs[5]:
+        st.subheader("Volatility & Mr. Market")
+        with st.expander("What does this simulator teach?", expanded=True):
+            st.markdown(
+                """
+                Volatility is not automatically the same as risk. A price decline can mean:
+                the asset became cheaper, the thesis deteriorated, liquidity worsened, the market is panicking, or some combination of these.
+
+                This diagnostic forces you to separate **price movement** from **decision quality**.
+                """
+            )
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            price_drop = st.slider("Price move", -50, 30, -15, 1, help="Negative values are drawdowns; positive values are price increases.", key="vol_price_move")
+            thesis_change = st.selectbox("Did the fundamental thesis change?", ["No clear change", "Slight deterioration", "Major deterioration", "Improvement"], key="vol_thesis")
+            horizon_match = st.selectbox("Does the horizon still match?", ["Yes", "Unclear", "No"], key="vol_horizon")
+            liquidity_need = st.selectbox("Has your personal liquidity need changed?", ["No", "Moderately", "Yes, urgently"], key="vol_liquidity")
+            valuation_view = st.selectbox("Valuation after the move", ["More attractive", "Unclear", "Still expensive", "Not relevant / unknown"], key="vol_valuation")
+        score = 0
+        score += {"No clear change": 2, "Slight deterioration": 0, "Major deterioration": -4, "Improvement": 3}[thesis_change]
+        score += {"Yes": 2, "Unclear": 0, "No": -3}[horizon_match]
+        score += {"No": 2, "Moderately": -1, "Yes, urgently": -4}[liquidity_need]
+        score += {"More attractive": 2, "Unclear": 0, "Still expensive": -1, "Not relevant / unknown": -1}[valuation_view]
+        if price_drop <= -20:
+            emotional_pressure = "High"
+            score -= 1
+        elif price_drop < 0:
+            emotional_pressure = "Moderate"
+        else:
+            emotional_pressure = "FOMO risk"
+            score -= 1
+        if score >= 5:
+            label = "Review or add under rule"
+            color = GOOD
+        elif score >= 0:
+            label = "Hold and investigate"
+            color = WARN
+        else:
+            label = "Reduce or avoid — mandate may be broken"
+            color = BAD
+        with right:
+            fig_gauge = go.Figure(go.Indicator(mode="gauge+number", value=score, title={"text": label}, gauge={"axis": {"range": [-10, 10]}, "bar": {"color": color}, "steps": [{"range": [-10, -1], "color": "#FEE2E2"}, {"range": [0, 4], "color": "#FEF3C7"}, {"range": [5, 10], "color": "#DCFCE7"}]}))
+            fig_gauge.update_layout(height=330, margin=dict(l=20, r=20, t=45, b=20))
+            st.plotly_chart(fig_gauge, use_container_width=True)
+        card(
+            "Mr. Market reading",
+            f"""
+            Emotional pressure is <strong>{emotional_pressure}</strong>. The suggested response is: <strong>{label}</strong>.<br><br>
+            A price move is not enough. A disciplined investor checks thesis, horizon, liquidity, valuation, and rule before acting.
+            """,
+            "model",
+        )
+
+    with tabs[6]:
+        st.subheader("DCA vs. Timing: discipline as a behavior strategy")
+        with st.expander("What does this simulator teach?", expanded=True):
+            st.markdown(
+                """
+                Dollar Cost Averaging (DCA) does not guarantee better returns. It is not a prediction strategy.
+                It is a behavioral strategy: it reduces the pressure of choosing the perfect entry point and fits investors with periodic income.
+                """
+            )
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            dca_scenario = st.selectbox("Market path", ["Volatile upward trend", "Drawdown and recovery", "Sideways noisy market"], key="dca_scenario")
+            contribution = st.number_input("Contribution per round", min_value=50.0, max_value=10000.0, value=500.0, step=50.0, key="dca_contribution")
+            rounds = st.slider("Number of rounds", 4, 10, 10, key="dca_rounds")
+            dca_cost_bps = st.slider("Cost per purchase", 0, 150, 15, 5, key="dca_cost") / 10000
+            timing_round = st.slider("Single-entry timing round", 1, rounds, 1, help="Compare DCA against investing the same total amount at one selected round.", key="timing_round")
+        prices_dca = np.array(path_map[dca_scenario][:rounds], dtype=float)
+        final_price = prices_dca[-1]
+        total_capital = contribution * rounds
+        # DCA
+        shares_dca = 0.0
+        for price in prices_dca:
+            shares_dca += (contribution * (1 - dca_cost_bps)) / price
+        dca_final = shares_dca * final_price
+        # Lump sum at selected round
+        timing_price = prices_dca[timing_round - 1]
+        lump_final = (total_capital * (1 - dca_cost_bps)) / timing_price * final_price
+        # Perfect hindsight and worst timing
+        best_round = int(np.argmin(prices_dca)) + 1
+        worst_round = int(np.argmax(prices_dca)) + 1
+        best_final = (total_capital * (1 - dca_cost_bps)) / prices_dca[best_round - 1] * final_price
+        worst_final = (total_capital * (1 - dca_cost_bps)) / prices_dca[worst_round - 1] * final_price
+        df_dca_plot = pd.DataFrame({"Round": np.arange(1, rounds + 1), "Price": prices_dca})
+        with right:
+            fig_dca = go.Figure()
+            fig_dca.add_trace(go.Scatter(x=df_dca_plot["Round"], y=df_dca_plot["Price"], mode="lines+markers", name="Price"))
+            fig_dca.add_vline(x=timing_round, line_dash="dash", annotation_text="single entry", annotation_position="top")
+            fig_dca.update_layout(title="Price path and chosen single-entry round", template="plotly_white", height=390, xaxis_title="Round", yaxis_title="Price", margin=dict(l=20, r=20, t=55, b=45))
+            st.plotly_chart(fig_dca, use_container_width=True)
+        compare = pd.DataFrame(
+            {
+                "Strategy": ["DCA", f"Single entry round {timing_round}", f"Best hindsight round {best_round}", f"Worst hindsight round {worst_round}"],
+                "Final wealth": [dca_final, lump_final, best_final, worst_final],
+                "Return on contributed capital (%)": [(dca_final / total_capital - 1) * 100, (lump_final / total_capital - 1) * 100, (best_final / total_capital - 1) * 100, (worst_final / total_capital - 1) * 100],
+            }
+        )
+        st.plotly_chart(bar_chart(compare["Strategy"].tolist(), compare["Final wealth"].tolist(), "DCA versus timing outcomes", "Final wealth", text_suffix=""), use_container_width=True)
+        card(
+            "Dynamic reading",
+            f"""
+            DCA final wealth: <strong>{money(dca_final)}</strong>. Single-entry final wealth: <strong>{money(lump_final)}</strong>.<br><br>
+            DCA is not designed to beat perfect hindsight. It is designed to reduce dependence on perfect timing and keep the investor committed to a rule.
+            """,
+            "model",
+        )
+
+    with tabs[7]:
+        st.subheader("Investor Profile & IPS rules")
+        with st.expander("Why this matters", expanded=True):
+            st.markdown(
+                """
+                Graham's defensive versus enterprising distinction is not about intelligence or ambition.
+                It is about time, knowledge, temperament, and the ability to sustain a process.
+                """
+            )
+        left, right = st.columns([0.95, 1.65])
+        with left:
+            time_available = st.slider("Time available for investment work per week", 0, 10, 2, key="profile_time")
+            knowledge = st.slider("Current financial knowledge", 1, 5, 2, key="profile_knowledge")
+            emotional_stability = st.slider("Ability to tolerate market stress", 1, 5, 3, key="profile_emotion")
+            income_stability = st.slider("Income stability", 1, 5, 3, key="profile_income")
+            desire_complexity = st.slider("Desire to analyze individual securities", 1, 5, 2, key="profile_complexity")
+        enterprising_score = 0.25 * time_available + 0.9 * knowledge + 0.8 * emotional_stability + 0.5 * income_stability + 0.9 * desire_complexity
+        defensive_score = 16 - enterprising_score
+        profile_df = pd.DataFrame(
+            {
+                "Profile": ["Defensive process fit", "Enterprising process fit"],
+                "Score": [defensive_score, enterprising_score],
+            }
+        )
+        with right:
+            st.plotly_chart(bar_chart(profile_df["Profile"].tolist(), profile_df["Score"].tolist(), "Profile fit is about sustainability", "Score", text_suffix=""), use_container_width=True)
+        if enterprising_score >= defensive_score + 1.5:
+            profile_label = "Enterprising may be feasible — but only with stronger rules."
+            rule_suggestion = "Set written limits on position size, evidence required, review frequency, and maximum concentration."
+        elif defensive_score >= enterprising_score + 1.5:
+            profile_label = "A defensive approach looks more coherent for now."
+            rule_suggestion = "Prioritize diversification, low maintenance, periodic contributions, and avoidance of products you cannot explain."
+        else:
+            profile_label = "Hybrid profile: simple core, limited satellite decisions."
+            rule_suggestion = "Use a diversified core portfolio and allow only small, evidence-based satellite positions."
+        card("Profile reading", f"<strong>{profile_label}</strong><br><br>{rule_suggestion}", "model")
+        st.markdown("#### Draft one IPS rule")
+        ips_type = st.selectbox("Rule type", ["Execution rule", "Volatility rule", "DCA rule", "Exclusion rule"], key="ips_rule_type_class3")
+        rule_templates = {
+            "Execution rule": "I will not use market orders in illiquid assets without first checking spread, depth, and the reason for urgency.",
+            "Volatility rule": "I will not sell only because price falls; I will first review whether thesis, horizon, or liquidity needs changed.",
+            "DCA rule": "I will invest periodically according to my allocation rule unless my personal liquidity needs materially change.",
+            "Exclusion rule": "I will not buy assets or vehicles whose risks, costs, liquidity terms, or return drivers I cannot explain clearly.",
+        }
+        custom_rule = st.text_area("Edit your IPS rule", value=rule_templates[ips_type], height=100, key="ips_rule_text_class3")
+        card(
+            "ACP standard",
+            f"""
+            A rule is useful only if it can guide behavior under pressure.<br><br>
+            <strong>Draft rule:</strong> {custom_rule}
+            """,
+            "decision",
+        )
 
 # =============================================================================
 # FINANCIAL GLOSSARY
